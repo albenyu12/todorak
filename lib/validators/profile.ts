@@ -1,7 +1,7 @@
 // TODO (Y): zod 또는 yup 도입 시 이 파일을 schema 기반 validation으로 교체
 // TODO (Y): 에러 메시지 국제화(i18n) 대응
 
-import { OnboardingFormData } from "@/types";
+import { OnboardingFormData } from "@/lib/types";
 
 export interface ValidationError {
   field: keyof OnboardingFormData;

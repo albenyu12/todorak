@@ -2,7 +2,7 @@
 // TODO (H): 날짜 포맷 유틸 분리 (현재 toLocaleDateString 인라인)
 
 import Link from "next/link";
-import { Answer } from "@/types";
+import { Answer } from "@/lib/types";
 
 interface AnswerCardProps {
   answer: Answer;

@@ -1,7 +1,7 @@
-// TODO (H): 카테고리 탭 필터 UI 구현 (icebreaker / work-style / values / skills)
+// TODO (H): 카테고리 탭 필터 UI 구현 (collaboration / role / conflict / work_style / interest / goal)
 // TODO (H): 질문 선택 시 QuestionForm의 custom input 초기화 처리
 
-import { Question } from "@/types";
+import { Question } from "@/lib/types";
 import QuestionCard from "./QuestionCard";
 
 interface SuggestedQuestionsProps {

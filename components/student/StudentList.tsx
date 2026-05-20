@@ -1,4 +1,4 @@
-import { RecommendationResult } from "@/types";
+import { RecommendationResult } from "@/lib/types";
 import StudentCard from "./StudentCard";
 
 interface StudentListProps {

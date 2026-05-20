@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { Answer } from "@/types";
+import { Answer } from "@/lib/types";
 import { getAnswerById } from "@/lib/localStorage";
+import { MOCK_STUDENTS } from "@/lib/mock-students";
 
 export default function AnswerDetailPage() {
   const { answerId } = useParams<{ answerId: string }>();
@@ -13,6 +14,10 @@ export default function AnswerDetailPage() {
   useEffect(() => {
     setAnswer(getAnswerById(answerId));
   }, [answerId]);
+
+  const student = answer
+    ? MOCK_STUDENTS.find((s) => s.id === answer.targetStudentId)
+    : null;
 
   if (!answer) {
     return (
@@ -50,12 +55,14 @@ export default function AnswerDetailPage() {
         </p>
       </div>
 
-      <Link
-        href={`/students/${answer.askedToStudentId}`}
-        className="btn-primary mt-4 text-center"
-      >
-        {answer.askedToStudentName}님 프로필 보기
-      </Link>
+      {student && (
+        <Link
+          href={`/students/${student.id}`}
+          className="btn-primary mt-4 text-center"
+        >
+          {student.name}님 프로필 보기
+        </Link>
+      )}
     </div>
   );
 }

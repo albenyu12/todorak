@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MOCK_STUDENTS } from "@/lib/data/mockData";
+import { MOCK_STUDENTS } from "@/lib/mock-students";
 import ProfileCard from "@/components/profile/ProfileCard";
 import { notFound } from "next/navigation";
 

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MOCK_STUDENTS } from "@/lib/data/mockData";
+import { MOCK_STUDENTS } from "@/lib/mock-students";
 import AnswerRecord from "@/components/answer/AnswerRecord";
 import { notFound } from "next/navigation";
 
@@ -41,8 +41,8 @@ export default async function RecordPage({ params, searchParams }: Props) {
       <AnswerRecord
         questionId={qid}
         questionText={decodeURIComponent(qtext)}
-        askedToStudentId={studentId}
-        askedToStudentName={student.name}
+        targetStudentId={studentId}
+        targetStudentName={student.name}
       />
     </div>
   );

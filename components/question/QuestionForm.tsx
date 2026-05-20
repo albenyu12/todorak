@@ -5,9 +5,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Question } from "@/types";
+import { Question } from "@/lib/types";
 import SuggestedQuestions from "./SuggestedQuestions";
-import { MOCK_QUESTIONS } from "@/lib/data/mockData";
+import { QUESTIONS } from "@/lib/questions";
 
 interface QuestionFormProps {
   studentId: string;
@@ -34,7 +34,7 @@ export default function QuestionForm({ studentId }: QuestionFormProps) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
       <SuggestedQuestions
-        questions={MOCK_QUESTIONS}
+        questions={QUESTIONS}
         selectedQuestionId={selectedQuestion?.id ?? null}
         onSelect={(q) => {
           setSelectedQuestion(q);

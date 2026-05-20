@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Answer } from "@/types";
+import { Answer } from "@/lib/types";
 import { getAnswers } from "@/lib/localStorage";
 import AnswerCard from "@/components/answer/AnswerCard";
 import Link from "next/link";

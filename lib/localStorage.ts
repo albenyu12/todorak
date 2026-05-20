@@ -1,6 +1,6 @@
 "use client";
 
-import { StudentProfile, Answer } from "@/types";
+import { StudentProfile, Answer } from "@/lib/types";
 
 const KEYS = {
   CURRENT_USER: "todorak_current_user",

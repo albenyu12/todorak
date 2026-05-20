@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MOCK_STUDENTS } from "@/lib/data/mockData";
+import { MOCK_STUDENTS } from "@/lib/mock-students";
 import QuestionForm from "@/components/question/QuestionForm";
 import { notFound } from "next/navigation";
 

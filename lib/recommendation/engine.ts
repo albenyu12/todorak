@@ -2,7 +2,7 @@
 // TODO (Y): lookingFor ↔ skills 매칭 가중치 조정
 // TODO (Y): 이미 대화한 학생은 추천 목록에서 제외하는 로직 추가
 
-import { StudentProfile, RecommendationResult } from "@/types";
+import { StudentProfile, RecommendationResult } from "@/lib/types";
 
 export function getRecommendations(
   currentUser: StudentProfile,

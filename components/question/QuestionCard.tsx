@@ -1,7 +1,7 @@
 // TODO (H): 선택된 질문 하이라이트 스타일 개선
 // TODO (H): 카테고리별 아이콘 추가
 
-import { Question } from "@/types";
+import { Question } from "@/lib/types";
 
 interface QuestionCardProps {
   question: Question;

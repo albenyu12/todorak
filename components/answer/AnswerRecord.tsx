@@ -5,21 +5,21 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Answer } from "@/types";
+import { Answer } from "@/lib/types";
 import { saveAnswer } from "@/lib/localStorage";
 
 interface AnswerRecordProps {
   questionId: string;
   questionText: string;
-  askedToStudentId: string;
-  askedToStudentName: string;
+  targetStudentId: string;
+  targetStudentName: string;
 }
 
 export default function AnswerRecord({
   questionId,
   questionText,
-  askedToStudentId,
-  askedToStudentName,
+  targetStudentId,
+  targetStudentName,
 }: AnswerRecordProps) {
   const router = useRouter();
   const [answerText, setAnswerText] = useState("");
@@ -33,8 +33,7 @@ export default function AnswerRecord({
       questionId,
       questionText,
       answerText: answerText.trim(),
-      askedToStudentId,
-      askedToStudentName,
+      targetStudentId,
       recordedAt: new Date().toISOString(),
     };
 
@@ -51,7 +50,7 @@ export default function AnswerRecord({
 
       <div>
         <p className="mb-2 text-sm font-medium text-gray-700">
-          {askedToStudentName}님의 답변을 기록해주세요
+          {targetStudentName}님의 답변을 기록해주세요
         </p>
         <textarea
           className="input min-h-[120px] resize-none"

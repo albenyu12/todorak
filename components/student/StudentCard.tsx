@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { StudentProfile } from "@/types";
+import { StudentProfile } from "@/lib/types";
 
 interface StudentCardProps {
   student: StudentProfile;
@@ -15,10 +15,16 @@ export default function StudentCard({ student, matchReasons }: StudentCardProps)
             {student.avatarInitial ?? student.name[0]}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="font-semibold text-gray-900">{student.name}</span>
               <span className="text-xs text-gray-400">
                 {student.department} {student.year}학년
+              </span>
+              <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-xs text-indigo-600">
+                {student.role}
+              </span>
+              <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs text-amber-600">
+                {student.collaborationStyle}
               </span>
             </div>
             <p className="mt-1 text-sm text-gray-600 line-clamp-2">{student.bio}</p>

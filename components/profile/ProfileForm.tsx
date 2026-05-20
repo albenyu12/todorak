@@ -2,25 +2,27 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { OnboardingFormData, StudentProfile } from "@/types";
+import { OnboardingFormData, StudentProfile, Role, CollaborationStyle } from "@/lib/types";
 import { validateOnboardingForm } from "@/lib/validators/profile";
 import { saveCurrentUser } from "@/lib/localStorage";
 
+const ROLE_OPTIONS: Role[] = ["개발자", "디자이너", "PM", "마케터", "데이터분석가"];
+const COLLABORATION_STYLE_OPTIONS: CollaborationStyle[] = ["리더형", "서포터형", "독립형", "협력형"];
 const INTEREST_OPTIONS = [
   "웹개발", "모바일", "AI", "데이터", "디자인", "마케팅",
   "스타트업", "게임개발", "오픈소스", "브랜딩", "기획", "독서", "운동",
 ];
-
 const SKILL_OPTIONS = [
   "React", "Node.js", "TypeScript", "Python", "Swift", "Kotlin",
   "Flutter", "Figma", "Illustrator", "After Effects", "기획", "데이터분석", "SQL",
 ];
-
-const LOOKING_FOR_OPTIONS = ["개발자", "디자이너", "기획자", "마케터", "데이터분석가"];
+const LOOKING_FOR_OPTIONS: Role[] = ["개발자", "디자이너", "PM", "마케터", "데이터분석가"];
 
 export default function ProfileForm() {
   const router = useRouter();
   const [form, setForm] = useState<Partial<OnboardingFormData>>({
+    role: "",
+    collaborationStyle: "",
     interests: [],
     skills: [],
     lookingFor: [],
@@ -41,6 +43,8 @@ export default function ProfileForm() {
       department: form.department!,
       year: parseInt(form.year!),
       bio: form.bio!,
+      role: form.role as Role,
+      collaborationStyle: form.collaborationStyle as CollaborationStyle,
       interests: form.interests ?? [],
       skills: form.skills ?? [],
       lookingFor: form.lookingFor ?? [],
@@ -52,7 +56,7 @@ export default function ProfileForm() {
   }
 
   function toggleTag(field: "interests" | "skills" | "lookingFor", value: string) {
-    const current = form[field] ?? [];
+    const current = (form[field] as string[]) ?? [];
     const updated = current.includes(value)
       ? current.filter((v) => v !== value)
       : [...current, value];
@@ -99,6 +103,44 @@ export default function ProfileForm() {
           value={form.bio ?? ""}
           onChange={(e) => setForm((p) => ({ ...p, bio: e.target.value }))}
         />
+      </Field>
+
+      <Field label="역할" error={errors.role}>
+        <div className="flex flex-wrap gap-2">
+          {ROLE_OPTIONS.map((opt) => (
+            <button
+              key={opt}
+              type="button"
+              onClick={() => setForm((p) => ({ ...p, role: opt }))}
+              className={`rounded-full border px-3 py-1 text-sm transition-colors ${
+                form.role === opt
+                  ? "border-indigo-500 bg-indigo-500 text-white"
+                  : "border-gray-300 text-gray-600 hover:border-indigo-300"
+              }`}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+      </Field>
+
+      <Field label="협업 스타일" error={errors.collaborationStyle}>
+        <div className="flex flex-wrap gap-2">
+          {COLLABORATION_STYLE_OPTIONS.map((opt) => (
+            <button
+              key={opt}
+              type="button"
+              onClick={() => setForm((p) => ({ ...p, collaborationStyle: opt }))}
+              className={`rounded-full border px-3 py-1 text-sm transition-colors ${
+                form.collaborationStyle === opt
+                  ? "border-amber-500 bg-amber-500 text-white"
+                  : "border-gray-300 text-gray-600 hover:border-amber-300"
+              }`}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
       </Field>
 
       <Field label="관심사 (복수 선택)">
