@@ -15,7 +15,7 @@ export default function Navbar() {
     <nav className="border-b border-gray-200 bg-white px-4 py-3">
       <div className="mx-auto flex max-w-2xl items-center justify-between">
         <Link href="/" className="text-lg font-bold text-indigo-600">
-          Todorak
+          토도락
         </Link>
         <div className="flex gap-4">
           {links.map((link) => (
