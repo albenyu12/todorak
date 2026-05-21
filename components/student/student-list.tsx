@@ -1,5 +1,5 @@
 import { RecommendationResult } from "@/lib/types";
-import StudentCard from "./StudentCard";
+import StudentCard from "./student-card";
 
 interface StudentListProps {
   recommendations: RecommendationResult[];

@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { RecommendationResult } from "@/lib/types";
-import { getCurrentUser } from "@/lib/localStorage";
+import { getCurrentUser, getAnswers } from "@/lib/localStorage";
 import { getRecommendations } from "@/lib/recommendation";
 import { MOCK_STUDENTS } from "@/lib/mock-students";
-import StudentList from "@/components/student/StudentList";
+import StudentList from "@/components/student/student-list";
 
 export default function RecommendationsPage() {
   const [recommendations, setRecommendations] = useState<RecommendationResult[]>([]);
@@ -13,7 +13,8 @@ export default function RecommendationsPage() {
   useEffect(() => {
     const user = getCurrentUser();
     if (user) {
-      setRecommendations(getRecommendations(user, MOCK_STUDENTS));
+      const exploredIds = [...new Set(getAnswers().map((a) => a.targetStudentId))];
+      setRecommendations(getRecommendations(user, MOCK_STUDENTS, exploredIds));
     } else {
       setRecommendations(
         MOCK_STUDENTS.map((s) => ({ student: s, score: 0, matchReasons: [] }))

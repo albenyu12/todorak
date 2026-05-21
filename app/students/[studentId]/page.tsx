@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { MOCK_STUDENTS } from "@/lib/mock-students";
-import ProfileCard from "@/components/profile/ProfileCard";
+import ProfileCard from "@/components/profile/profile-card";
 import StudentAnswers from "@/components/student/student-answers";
 import { notFound } from "next/navigation";
 

@@ -49,18 +49,13 @@ export function getRecommendations(
       matchReasons.push(`공통 관심사: ${sharedInterests.join(", ")}`);
     }
 
-    // TODO (Y): 아래 두 블록을 role 정확 매칭으로 교체
-    const wantsFromStudent = currentUser.lookingFor.some((role) =>
-      student.skills.some((skill) => skill.includes(role) || role.includes(skill))
-    );
+    const wantsFromStudent = currentUser.lookingFor.includes(student.role);
     if (wantsFromStudent) {
       score += 20;
       matchReasons.push("찾고 있는 역할 보유");
     }
 
-    const studentWantsMe = student.lookingFor.some((role) =>
-      currentUser.skills.some((skill) => skill.includes(role) || role.includes(skill))
-    );
+    const studentWantsMe = student.lookingFor.includes(currentUser.role);
     if (studentWantsMe) {
       score += 15;
       matchReasons.push("상대방이 찾는 역할 보유");

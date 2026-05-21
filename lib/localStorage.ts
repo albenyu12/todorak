@@ -3,6 +3,15 @@
 import { StudentProfile, Answer, AnonymousQuestion } from "@/lib/types";
 import { MOCK_ANSWERS } from "@/lib/mock-answers";
 
+function safeParse<T>(raw: string | null): T | null {
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
+}
+
 const KEYS = {
   CURRENT_USER: "todorak_current_user",
   ANSWERS: "todorak_answers",
@@ -15,8 +24,7 @@ export function saveCurrentUser(profile: StudentProfile): void {
 
 export function getCurrentUser(): StudentProfile | null {
   if (typeof window === "undefined") return null;
-  const raw = localStorage.getItem(KEYS.CURRENT_USER);
-  return raw ? (JSON.parse(raw) as StudentProfile) : null;
+  return safeParse<StudentProfile>(localStorage.getItem(KEYS.CURRENT_USER));
 }
 
 export function clearCurrentUser(): void {
@@ -31,8 +39,7 @@ export function saveAnswer(answer: Answer): void {
 
 export function getAnswers(): Answer[] {
   if (typeof window === "undefined") return [];
-  const raw = localStorage.getItem(KEYS.ANSWERS);
-  return raw ? (JSON.parse(raw) as Answer[]) : [];
+  return safeParse<Answer[]>(localStorage.getItem(KEYS.ANSWERS)) ?? [];
 }
 
 export function getAnswerById(id: string): Answer | null {
@@ -41,9 +48,8 @@ export function getAnswerById(id: string): Answer | null {
 
 export function initMockAnswers(): void {
   if (typeof window === "undefined") return;
-  const raw = localStorage.getItem(KEYS.ANSWERS);
-  if (raw) {
-    const parsed = JSON.parse(raw) as Answer[];
+  const parsed = safeParse<Answer[]>(localStorage.getItem(KEYS.ANSWERS));
+  if (parsed) {
     // 구버전 데이터(answerType 없음)면 재시딩
     if (parsed.length > 0 && !parsed[0].answerType) {
       localStorage.removeItem(KEYS.ANSWERS);
@@ -62,8 +68,7 @@ export function saveAnonymousQuestion(q: AnonymousQuestion): void {
 
 function getAllAnonymousQuestions(): AnonymousQuestion[] {
   if (typeof window === "undefined") return [];
-  const raw = localStorage.getItem(KEYS.ANONYMOUS_QUESTIONS);
-  return raw ? (JSON.parse(raw) as AnonymousQuestion[]) : [];
+  return safeParse<AnonymousQuestion[]>(localStorage.getItem(KEYS.ANONYMOUS_QUESTIONS)) ?? [];
 }
 
 export function getAnonymousQuestionsFor(studentId: string): AnonymousQuestion[] {
