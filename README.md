@@ -38,25 +38,42 @@ http://localhost:3000 에서 확인
 ## 폴더 구조
 
 ```
-app/                  # 페이지 (App Router)
+app/                        # 페이지 (App Router) — 지원
 components/
-  ├─ answer/          # 호중 담당
-  ├─ question/        # 호중 담당
+  ├─ ui/                    # 공통 UI 컴포넌트 — 봄이
+  │   ├─ button.tsx
+  │   ├─ card.tsx
+  │   ├─ input.tsx
+  │   ├─ textarea.tsx
+  │   └─ badge.tsx
+  ├─ layout/                # 레이아웃 — 봄이
+  │   ├─ header.tsx
+  │   └─ bottom-nav.tsx
+  ├─ question/              # 질문/답변 기록 — 호중
+  │   ├─ recommended-question-list.tsx
+  │   ├─ question-form.tsx
+  │   └─ answer-record-form.tsx
+  ├─ answer/                # Q&A 리스트/카드 — 호중
+  │   ├─ answer-card.tsx
+  │   ├─ anonymous-answer-list.tsx
+  │   └─ empty-answer-state.tsx
   ├─ profile/
-  ├─ student/
-  └─ layout/
+  └─ student/
 lib/
-  ├─ data/            # 용현 담당
-  ├─ recommendation/  # 용현 담당
-  └─ validators/      # 용현 담당
-types/                # 공유 타입
+  ├─ types.ts               # 공유 타입
+  ├─ recommendation.ts      # 추천 알고리즘 — 용현
+  ├─ validators.ts          # 입력 검증 — 용현
+  ├─ questions.ts           # 추천 질문 데이터 — 용현
+  ├─ mock-students.ts       # mock 학생 데이터 — 용현
+  ├─ mock-answers.ts        # mock 답변 데이터 — 용현
+  └─ localStorage.ts        # 로컬 저장소 유틸
 ```
 
-## 팀 역할
+## 파일 오너십
 
-| 팀원 | 담당 |
-|------|------|
-| 지원 (J) | 프로젝트 셋업, 전체 구조, 페이지 연결 |
-| 호중 (H) | `components/question/`, `components/answer/` |
-| 용현 (Y) | `lib/data/`, `lib/recommendation/`, `lib/validators/` |
-| 봄이 (B) | 디자인 polish |
+| 팀원 | 역할 | 담당 파일 |
+|------|------|-----------|
+| 지원 (J) | app 라우팅, 핵심 플로우, 통합, 배포 | `app/`, `components/profile/`, `components/student/`, `lib/localStorage.ts` |
+| 용현 (Y) | lib 데이터/추천/검증 로직 | `lib/recommendation.ts`, `lib/validators.ts`, `lib/questions.ts`, `lib/mock-students.ts`, `lib/mock-answers.ts` |
+| 호중 (H) | Q&A 인터랙션 컴포넌트 | `components/question/`, `components/answer/` |
+| 봄이 (B) | UI 컴포넌트 polish, 레이아웃 | `components/ui/`, `components/layout/`, `app/globals.css` |

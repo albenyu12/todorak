@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { MOCK_STUDENTS } from "@/lib/mock-students";
-import QuestionForm from "@/components/question/QuestionForm";
+import QuestionForm from "@/components/question/question-form";
 import { notFound } from "next/navigation";
 
 interface Props {

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Navbar from "@/components/layout/Navbar";
+import Header from "@/components/layout/header";
+import BottomNav from "@/components/layout/bottom-nav";
 
 export const metadata: Metadata = {
   title: "토도락 — 팀빌딩 탐색 서비스",
@@ -15,8 +16,10 @@ export default function RootLayout({
   return (
     <html lang="ko" className="h-full antialiased">
       <body className="min-h-full flex flex-col bg-gray-50">
-        <Navbar />
-        <main className="flex-1">{children}</main>
+        <Header />
+        {/* pb-16: BottomNav 높이만큼 하단 여백 확보 (모바일) */}
+        <main className="flex-1 pb-16 md:pb-0">{children}</main>
+        <BottomNav />
       </body>
     </html>
   );

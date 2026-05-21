@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { OnboardingFormData, StudentProfile, Role, CollaborationStyle } from "@/lib/types";
-import { validateOnboardingForm } from "@/lib/validators/profile";
+import { validateOnboardingForm } from "@/lib/validators";
 import { saveCurrentUser } from "@/lib/localStorage";
 
 const ROLE_OPTIONS: Role[] = ["개발자", "디자이너", "PM", "마케터", "데이터분석가"];

@@ -1,3 +1,20 @@
+// TODO (Y): 학생 데이터 다양성 검토
+// 입력값: MOCK_STUDENTS 배열
+// 해야 할 일: 전공/role/collaborationStyle 조합이 고르게 분포되어 있는지 확인,
+//             추천 알고리즘 테스트 시 다양한 매칭 케이스가 나오도록 데이터 보완
+// 완료 기준: 어떤 프로필로 온보딩해도 점수 차이가 있는 추천 결과가 나옴
+
+// TODO (Y): 데이터 확장성 확보
+// 입력값: 추가될 학생 데이터
+// 해야 할 일: 현재 배열 방식은 유지하되, 나중에 API fetch로 교체 가능하도록
+//             MOCK_STUDENTS를 import하는 파일들이 동일한 인터페이스를 사용 중인지 확인
+// 완료 기준: MOCK_STUDENTS를 fetch 기반으로 교체해도 import하는 파일 수정 불필요
+
+// TODO (Y): 실제 API 연동 시 이 파일 교체
+// 입력값: 없음 (정적 mock 데이터)
+// 해야 할 일: 서버 API 또는 DB 연동 준비되면 MOCK_STUDENTS를 fetch 함수로 교체
+// 완료 기준: MOCK_STUDENTS를 import하던 파일들이 fetch 기반 데이터 소스로 전환됨
+
 import { StudentProfile } from "@/lib/types";
 
 export const MOCK_STUDENTS: StudentProfile[] = [

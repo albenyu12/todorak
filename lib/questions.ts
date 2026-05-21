@@ -1,3 +1,20 @@
+// TODO (Y): 질문 수 보강
+// 입력값: QUESTIONS 배열
+// 해야 할 일: 각 카테고리당 최소 3개 이상이 되도록 질문 추가
+// 완료 기준: 카테고리 탭 필터 시 항상 2개 이상의 질문이 표시됨
+
+// TODO (Y): 프로필 기반 추천 질문 확장
+// 입력값: StudentProfile (interests, role, collaborationStyle)
+// 해야 할 일: getPersonalizedQuestions(profile: StudentProfile): RecommendedQuestion[]
+//             함수를 추가해서 상대방 프로필에 따라 질문을 추천
+//             예: role이 "디자이너"면 "어떤 디자인 툴을 주로 사용하나요?" 같은 질문 우선 노출
+// 완료 기준: ask 페이지에서 상대 학생 프로필 기반으로 상위 N개 질문이 추천됨
+
+// TODO (Y): 질문 텍스트 검수
+// 입력값: 각 질문의 text 필드
+// 해야 할 일: 팀원들과 리뷰 후 어색한 표현 수정, 중복 제거
+// 완료 기준: 모든 질문이 자연스러운 한국어로 작성되고 중복이 없음
+
 import { RecommendedQuestion } from "@/lib/types";
 
 export const QUESTIONS: RecommendedQuestion[] = [

@@ -1,11 +1,37 @@
 @import "tailwindcss";
 
+/* TODO (B): 디자인 토큰 정리
+ * 해야 할 일: 아래 CSS variable을 실제 디자인 시스템 값으로 채우기
+ *             primary 색상, spacing scale, border-radius 등을 변수로 관리
+ * 완료 기준: 색상/spacing 변경 시 이 파일 한 곳만 수정하면 전체 반영됨
+ *
+ * 예시:
+ * --color-primary: #4f46e5;
+ * --color-primary-hover: #4338ca;
+ * --color-surface: #ffffff;
+ * --color-surface-subtle: #f9fafb;
+ * --radius-card: 0.75rem;
+ * --radius-button: 0.5rem;
+ */
+
+/* TODO (B): Tailwind base layer 확장
+ * 해야 할 일: 반복되는 base 스타일(focus-visible ring, 스크롤바 등)을
+ *             @layer base에 정의해서 components에서 중복 제거
+ * 완료 기준: 모든 interactive 요소에 일관된 focus-visible 스타일 적용
+ */
+
+/* TODO (B): 모바일 safe-area 대응
+ * 해야 할 일: BottomNav와 페이지 하단에 env(safe-area-inset-bottom) 적용
+ * 완료 기준: iPhone 홈 인디케이터 영역과 UI가 겹치지 않음
+ */
+
 @layer base {
   body {
     @apply bg-gray-50 text-gray-900;
   }
 }
 
+/* 기존 유틸리티 클래스 — 점진적으로 components/ui 로 이전 예정 */
 @layer components {
   .input {
     @apply w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100;

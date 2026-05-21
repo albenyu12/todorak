@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { RecommendationResult } from "@/lib/types";
 import { getCurrentUser } from "@/lib/localStorage";
-import { getRecommendations } from "@/lib/recommendation/engine";
+import { getRecommendations } from "@/lib/recommendation";
 import { MOCK_STUDENTS } from "@/lib/mock-students";
 import StudentList from "@/components/student/StudentList";
 import Link from "next/link";

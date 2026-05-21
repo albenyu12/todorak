@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { MOCK_STUDENTS } from "@/lib/mock-students";
-import AnswerRecord from "@/components/answer/AnswerRecord";
+import AnswerRecordForm from "@/components/question/answer-record-form";
 import { notFound } from "next/navigation";
 
 interface Props {
@@ -38,7 +38,7 @@ export default async function RecordPage({ params, searchParams }: Props) {
       <p className="text-sm text-gray-500 mb-6">
         대면으로 들은 답변을 기록해두세요.
       </p>
-      <AnswerRecord
+      <AnswerRecordForm
         questionId={qid}
         questionText={decodeURIComponent(qtext)}
         targetStudentId={studentId}

@@ -1,3 +1,20 @@
+// ⚠️ 중요: 이 파일의 Answer 데이터에는 답변자 이름을 저장하지 않습니다.
+// 학생 식별은 반드시 targetStudentId로만 합니다.
+// 이름이 필요한 경우 MOCK_STUDENTS에서 id로 조회하세요.
+
+// TODO (Y): mock 답변을 localStorage seed 데이터로 주입
+// 입력값: MOCK_ANSWERS 배열
+// 해야 할 일: 앱 초기 로드 시 localStorage에 MOCK_ANSWERS가 없으면
+//             seed 데이터로 주입하는 initMockAnswers() 함수 추가
+//             (예: lib/localStorage.ts에 initIfEmpty 함수 추가)
+// 완료 기준: 첫 방문 시 /answers 페이지에 샘플 Q&A가 보임
+
+// TODO (Y): mock 답변 내용 검수
+// 입력값: MOCK_ANSWERS 배열의 answerText
+// 해야 할 일: 실제 사용자가 기록할 법한 자연스러운 대화체로 수정,
+//             너무 완성된 문장보다 구어체에 가깝게 다듬기
+// 완료 기준: 팀원 리뷰 후 어색한 답변 없음
+
 import { Answer } from "@/lib/types";
 
 export const MOCK_ANSWERS: Answer[] = [
