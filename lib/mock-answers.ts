@@ -25,6 +25,7 @@ export const MOCK_ANSWERS: Answer[] = [
     answerText: "짧은 데일리 스탠드업으로 진행 상황을 공유하고, 나머지는 비동기로 처리하는 걸 좋아해요.",
     targetStudentId: "student-1",
     recordedAt: "2026-05-10T10:30:00.000Z",
+    answerType: "inperson",
   },
   {
     id: "ans-mock-2",
@@ -33,6 +34,7 @@ export const MOCK_ANSWERS: Answer[] = [
     answerText: "주로 디자인 시스템 구축을 맡아요. 컴포넌트를 만들어두면 팀 전체가 일관성 있게 쓸 수 있어서 좋아합니다.",
     targetStudentId: "student-2",
     recordedAt: "2026-05-10T11:00:00.000Z",
+    answerType: "online",
   },
   {
     id: "ans-mock-3",
@@ -41,6 +43,7 @@ export const MOCK_ANSWERS: Answer[] = [
     answerText: "실제로 사용자가 쓰는 서비스를 만들어보고 싶어요. 배포까지 끝낸 경험이 없어서 이번엔 꼭 해보고 싶습니다.",
     targetStudentId: "student-3",
     recordedAt: "2026-05-11T09:00:00.000Z",
+    answerType: "online",
   },
   {
     id: "ans-mock-4",
@@ -49,6 +52,7 @@ export const MOCK_ANSWERS: Answer[] = [
     answerText: "LLM 파인튜닝이요. 특히 작은 모델로 특정 도메인에서 좋은 성능을 내는 방법을 연구하고 있어요.",
     targetStudentId: "student-4",
     recordedAt: "2026-05-11T14:00:00.000Z",
+    answerType: "inperson",
   },
   {
     id: "ans-mock-5",
@@ -57,6 +61,7 @@ export const MOCK_ANSWERS: Answer[] = [
     answerText: "아이디어 발산은 같이 하고, 실제 작업은 혼자 하는 게 제일 좋아요. 집중이 잘 되거든요.",
     targetStudentId: "student-5",
     recordedAt: "2026-05-12T10:00:00.000Z",
+    answerType: "inperson",
   },
   {
     id: "ans-mock-6",
@@ -65,6 +70,7 @@ export const MOCK_ANSWERS: Answer[] = [
     answerText: "일단 각자 의견의 근거를 정리해서 공유해요. 감정보다 데이터나 논리로 이야기하면 보통 잘 풀리더라고요.",
     targetStudentId: "student-6",
     recordedAt: "2026-05-12T15:00:00.000Z",
+    answerType: "online",
   },
   {
     id: "ans-mock-7",
@@ -73,6 +79,7 @@ export const MOCK_ANSWERS: Answer[] = [
     answerText: "캠퍼스 내 중고거래 앱을 만들어보고 싶어요. 당근마켓처럼 동네 기반인데, 학교 인증을 넣어서 더 신뢰도 있게.",
     targetStudentId: "student-7",
     recordedAt: "2026-05-13T11:00:00.000Z",
+    answerType: "online",
   },
   {
     id: "ans-mock-8",
@@ -81,6 +88,7 @@ export const MOCK_ANSWERS: Answer[] = [
     answerText: "먼저 할 일 목록을 다시 정리해서 우선순위를 매겨요. 그리고 팀원들에게 상황을 투명하게 공유하는 게 제일 중요하다고 생각해요.",
     targetStudentId: "student-8",
     recordedAt: "2026-05-13T16:00:00.000Z",
+    answerType: "inperson",
   },
   {
     id: "ans-mock-9",
@@ -89,6 +97,7 @@ export const MOCK_ANSWERS: Answer[] = [
     answerText: "심리적 안전감이요. 틀린 말을 해도 괜찮은 분위기여야 좋은 아이디어가 나온다고 생각해요.",
     targetStudentId: "student-1",
     recordedAt: "2026-05-14T09:30:00.000Z",
+    answerType: "online",
   },
   {
     id: "ans-mock-10",
@@ -97,6 +106,7 @@ export const MOCK_ANSWERS: Answer[] = [
     answerText: "사용자 리서치예요. 디자인하기 전에 실제 사용자 인터뷰를 해서 문제를 검증하는 과정을 중요하게 생각해요.",
     targetStudentId: "student-2",
     recordedAt: "2026-05-14T13:00:00.000Z",
+    answerType: "inperson",
   },
   {
     id: "ans-mock-11",
@@ -105,6 +115,7 @@ export const MOCK_ANSWERS: Answer[] = [
     answerText: "저녁 9시 이후가 제일 잘 돼요. 도서관보다는 카페나 집이 편하고, 음악 틀어놓고 일하는 걸 좋아합니다.",
     targetStudentId: "student-4",
     recordedAt: "2026-05-15T10:00:00.000Z",
+    answerType: "inperson",
   },
   {
     id: "ans-mock-12",
@@ -113,5 +124,6 @@ export const MOCK_ANSWERS: Answer[] = [
     answerText: "실제 유저가 100명 이상 쓰는 서비스요. 완성도보다 실제로 쓰이는 게 더 중요하다고 생각해서, MVP를 빠르게 내고 피드백을 받고 싶어요.",
     targetStudentId: "student-3",
     recordedAt: "2026-05-15T14:30:00.000Z",
+    answerType: "online",
   },
 ];

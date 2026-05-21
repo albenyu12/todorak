@@ -45,6 +45,15 @@ export interface Answer {
   answerText: string;
   targetStudentId: string;
   recordedAt: string;
+  answerType: "inperson" | "online";
+}
+
+export interface AnonymousQuestion {
+  id: string;
+  questionId: string;
+  questionText: string;
+  targetStudentId: string;
+  createdAt: string;
 }
 
 export interface RecommendationResult {
