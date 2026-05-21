@@ -38,42 +38,37 @@ http://localhost:3000 에서 확인
 ## 폴더 구조
 
 ```
-app/                        # 페이지 (App Router) — 지원
+app/
 components/
-  ├─ ui/                    # 공통 UI 컴포넌트 — 봄이
+  ├─ ui/
   │   ├─ button.tsx
   │   ├─ card.tsx
   │   ├─ input.tsx
   │   ├─ textarea.tsx
   │   └─ badge.tsx
-  ├─ layout/                # 레이아웃 — 봄이
+  ├─ layout/
   │   ├─ header.tsx
   │   └─ bottom-nav.tsx
-  ├─ question/              # 질문/답변 기록 — 호중
+  ├─ question/
   │   ├─ recommended-question-list.tsx
   │   ├─ question-form.tsx
   │   └─ answer-record-form.tsx
-  ├─ answer/                # Q&A 리스트/카드 — 호중
+  ├─ answer/
   │   ├─ answer-card.tsx
   │   ├─ anonymous-answer-list.tsx
   │   └─ empty-answer-state.tsx
   ├─ profile/
   └─ student/
 lib/
-  ├─ types.ts               # 공유 타입
-  ├─ recommendation.ts      # 추천 알고리즘 — 용현
-  ├─ validators.ts          # 입력 검증 — 용현
-  ├─ questions.ts           # 추천 질문 데이터 — 용현
-  ├─ mock-students.ts       # mock 학생 데이터 — 용현
-  ├─ mock-answers.ts        # mock 답변 데이터 — 용현
-  └─ localStorage.ts        # 로컬 저장소 유틸
+  ├─ types.ts
+  ├─ recommendation.ts
+  ├─ validators.ts
+  ├─ questions.ts
+  ├─ mock-students.ts
+  ├─ mock-answers.ts
+  └─ localStorage.ts
 ```
 
-## 파일 오너십
+## 개발 컨벤션
 
-| 팀원 | 역할 | 담당 파일 |
-|------|------|-----------|
-| 지원 (J) | app 라우팅, 핵심 플로우, 통합, 배포 | `app/`, `components/profile/`, `components/student/`, `lib/localStorage.ts` |
-| 용현 (Y) | lib 데이터/추천/검증 로직 | `lib/recommendation.ts`, `lib/validators.ts`, `lib/questions.ts`, `lib/mock-students.ts`, `lib/mock-answers.ts` |
-| 호중 (H) | Q&A 인터랙션 컴포넌트 | `components/question/`, `components/answer/` |
-| 봄이 (B) | UI 컴포넌트 polish, 레이아웃 | `components/ui/`, `components/layout/`, `app/globals.css` |
+브랜치 전략, 커밋 규칙, 파일 오너십, 핵심 코드 규칙은 [CONVENTIONS.md](./CONVENTIONS.md)를 참고하세요.
