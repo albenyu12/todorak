@@ -34,7 +34,7 @@ export default function Header() {
           토도락
         </Link>
         {/* TODO (B): 데스크탑 nav 링크 스타일 */}
-        <nav className="flex gap-4">
+        <nav className="hidden md:flex gap-4">
           {NAV_LINKS.map((link) => (
             <Link
               key={link.href}

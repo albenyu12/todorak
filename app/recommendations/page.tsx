@@ -6,7 +6,6 @@ import { getCurrentUser } from "@/lib/localStorage";
 import { getRecommendations } from "@/lib/recommendation";
 import { MOCK_STUDENTS } from "@/lib/mock-students";
 import StudentList from "@/components/student/StudentList";
-import Link from "next/link";
 
 export default function RecommendationsPage() {
   const [recommendations, setRecommendations] = useState<RecommendationResult[]>([]);
@@ -24,14 +23,9 @@ export default function RecommendationsPage() {
 
   return (
     <div className="page-container">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">추천 학생</h1>
-          <p className="text-sm text-gray-500 mt-0.5">클릭해서 프로필을 확인하세요</p>
-        </div>
-        <Link href="/onboarding" className="text-sm text-indigo-600 hover:underline">
-          프로필 수정
-        </Link>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">추천 학생</h1>
+        <p className="text-sm text-gray-500 mt-0.5">클릭해서 프로필을 확인하세요</p>
       </div>
       <StudentList recommendations={recommendations} />
     </div>

@@ -49,6 +49,7 @@ export default function AnswerRecordForm({
       answerText: answerText.trim(),
       targetStudentId,
       recordedAt: new Date().toISOString(),
+      answerType: "inperson",
     };
 
     saveAnswer(answer);

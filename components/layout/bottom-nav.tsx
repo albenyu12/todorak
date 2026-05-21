@@ -24,7 +24,7 @@ import { usePathname } from "next/navigation";
 const NAV_ITEMS = [
   { href: "/recommendations", label: "추천" },
   { href: "/answers", label: "Q&A" },
-  { href: "/onboarding", label: "프로필" },
+  { href: "/profile", label: "프로필" },
 ];
 
 export default function BottomNav() {

@@ -60,7 +60,7 @@ export default function AnswerDetailPage() {
           href={`/students/${student.id}`}
           className="btn-primary mt-4 text-center"
         >
-          {student.name}님 프로필 보기
+          이 학생 프로필 보기
         </Link>
       )}
     </div>

@@ -14,12 +14,6 @@ interface AnswerCardProps {
 // targetStudentId는 링크(프로필 보기) 전용으로만 사용합니다.
 // 리스트에서는 항상 "익명의 학생"으로만 표시해야 합니다.
 
-// TODO (H): 카테고리 뱃지 표시
-// 입력값: answer.questionId → QUESTIONS 배열에서 category 조회
-// 해야 할 일: questionId로 QUESTIONS를 find해서 category를 찾고,
-//             해당 카테고리에 맞는 Badge variant 적용
-// 완료 기준: 카드 상단에 카테고리 뱃지가 표시되고 카테고리별 색상이 구분됨
-
 // TODO (H): 날짜 포맷 유틸 분리
 // 입력값: answer.recordedAt (ISO 8601 문자열)
 // 해야 할 일: lib/utils.ts에 formatDate(iso: string): string 함수 만들고 교체
@@ -34,18 +28,27 @@ const CATEGORY_LABELS: Record<QuestionCategory, string> = {
   goal: "목표",
 };
 
+const ANSWER_TYPE_LABELS: Record<"inperson" | "online", string> = {
+  inperson: "대면",
+  online: "온라인",
+};
+
 export default function AnswerCard({ answer }: AnswerCardProps) {
   const question = QUESTIONS.find((q) => q.id === answer.questionId);
 
   return (
-    <Link href={`/answers/${answer.id}`}>
+    <Link href={`/students/${answer.targetStudentId}`}>
       <Card className="hover:border-indigo-300 hover:shadow-sm transition-all">
-        {/* TODO (H): 카테고리 뱃지 */}
-        {question && (
-          <Badge variant="category" className="mb-2">
-            {CATEGORY_LABELS[question.category]}
+        <div className="flex items-center gap-1.5 mb-2">
+          {question && (
+            <Badge variant="category">
+              {CATEGORY_LABELS[question.category]}
+            </Badge>
+          )}
+          <Badge variant={answer.answerType === "inperson" ? "role" : "match"}>
+            {ANSWER_TYPE_LABELS[answer.answerType]}
           </Badge>
-        )}
+        </div>
         <p className="text-sm font-medium text-gray-800 line-clamp-2">
           Q. {answer.questionText}
         </p>
