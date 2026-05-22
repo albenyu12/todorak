@@ -19,7 +19,7 @@
 // 해야 할 일: 공백 제거 후 length 검사, 에러 메시지에 몇 자 더 필요한지 표시
 // 완료 기준: "8자 더 입력해주세요" 형태의 메시지가 표시됨
 
-import {z} from "zod"; // zod 라이브러리 임포트 (1번째 TODO (Y) 참고)
+import {z} from "zod"; // [1번 TODO (Y) 해결] zod 라이브러리 임포트
 import { OnboardingFormData } from "@/lib/types";
 
 export interface ValidationError {
@@ -41,15 +41,18 @@ const profileFormSchema = z.object({
   
   // 4. 자기소개는 공백 제거 후 최소 10자 이상
   bio: z.string().trim().min(10, { message: "자기소개를 10자 이상 입력해주세요." }),
-}); // Zod에게 이름은 필수인지, 글자 수는 몇 자여야 하는지 규격을 알려주는 설계도를 만드는 스키마(1번째 TODO (Y) 참고)
+  // [2번 TODO (Y) 해결] 역할과 협업 스타일은 빈 문자열("") 통과 방지! 최소 1자 필수!
+  role: z.string().trim().min(1, { message: "역할을 선택해주세요." }),
+  collaborationStyle: z.string().trim().min(1, { message: "협업 스타일을 선택해주세요." }),
+}); // [1번 TODO (Y) 해결] Zod에게 이름은 필수인지, 글자 수는 몇 자여야 하는지 규격을 알려주는 설계도를 만드는 스키마
 
 // 프로필 입력 검증
 export function validateProfileForm(
   data: Partial<OnboardingFormData>
 ): ValidationError[] {
-  // 기존 코드는 if (!data.name) 처럼 일일이 검사해서 errors.push로 담았음(1번째 TODO (Y) 참고)
+  // [1번 TODO (Y) 해결] 기존 코드는 if (!data.name) 처럼 일일이 검사해서 errors.push로 담았음
   // const errors: ValidationError[] = [];
-  // 변화된 코드는 Zod의 safeParse라는 기능을 써서 준비된 설계도에 입력된 데이터를 넣어서 검사한다.
+  // [1번 TODO (Y) 해결] 변화된 코드는 Zod의 safeParse라는 기능을 써서 준비된 설계도에 입력된 데이터를 넣어서 검사한다.
   const result = profileFormSchema.safeParse(data);
 
   // if (!data.name || data.name.trim().length === 0) {
@@ -65,7 +68,7 @@ export function validateProfileForm(
   //   errors.push({ field: "bio", message: "자기소개를 10자 이상 입력해주세요." });
   // } : 기존 검증 로직 (1번째 TODO (Y) 참고)
 
-  // 수정된 로직 - 만약 검사 결과 불합격(success가 false)이라면?
+  // [1번 TODO (Y) 해결] 수정된 로직 - 만약 검사 결과 불합격(success가 false)이라면?
   if (!result.success) {
     // Zod가 찾아낸 에러 목록들을 우리 화면이 이해할 수 있는 형식으로 변환해서 돌려줍니다.
     return result.error.issues.map((issue) => ({
