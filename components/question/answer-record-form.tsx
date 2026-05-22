@@ -14,12 +14,6 @@ interface AnswerRecordFormProps {
   targetStudentName: string;
 }
 
-// TODO (H): 글자 수 카운터 표시
-// 입력값: answerText.length, MIN_LENGTH (예: 10)
-// 해야 할 일: textarea 하단에 "12자 / 최소 10자" 형태로 실시간 표시,
-//             최소 미충족 시 빨간색으로 강조
-// 완료 기준: 입력 중 글자 수가 실시간으로 표시되고 최소 기준 미충족 시 시각 경고
-
 // TODO (H): 저장 성공 피드백
 // 입력값: 저장 완료 상태
 // 해야 할 일: 저장 완료 후 /answers 이동 전 "저장됐어요!" 인라인 메시지 표시 (500ms 정도)
@@ -36,7 +30,10 @@ export default function AnswerRecordForm({
   const router = useRouter();
   const [answerText, setAnswerText] = useState("");
 
-  const isValid = answerText.trim().length >= MIN_ANSWER_LENGTH;
+  // 공백만 있는 입력은 0자로 취급 (trim 후 길이)
+  const charCount = answerText.trim().length;
+  // 최소 글자 수 충족 여부 — 저장 버튼·카운터 색상에 사용
+  const isValid = charCount >= MIN_ANSWER_LENGTH;
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -75,9 +72,9 @@ export default function AnswerRecordForm({
           error={answerText.length > 0 && !isValid}
           className="min-h-[120px]"
         />
-        {/* TODO (H): 글자 수 카운터 */}
+        {/* 글자 수 카운터: 입력마다 갱신, 미충족 시 빨간색으로 경고 */}
         <p className={`mt-1 text-right text-xs ${isValid ? "text-gray-400" : "text-red-400"}`}>
-          {answerText.trim().length}자 {!isValid && `(최소 ${MIN_ANSWER_LENGTH}자)`}
+          {charCount}자 / 최소 {MIN_ANSWER_LENGTH}자
         </p>
       </div>
 
@@ -88,3 +85,4 @@ export default function AnswerRecordForm({
     </form>
   );
 }
+
