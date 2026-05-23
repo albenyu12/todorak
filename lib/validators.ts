@@ -35,8 +35,30 @@ const profileFormSchema = z.object({
   department: z.string().trim().min(1, { message: "학과를 입력해주세요." }),
   // 3. 학년은 비어있으면 안 됨 (z.any()에서 string 또는 number만 받도록 안전하게 타입 수정)
   year: z.string().trim().min(1, { message: "학년을 선택해주세요." }).or(z.number()),
-  // 4. 자기소개는 공백 제거 후 최소 10자 이상
-  bio: z.string().trim().min(10, { message: "자기소개를 10자 이상 입력해주세요." }),
+  // 4. 자기소개는 공백 제거 후 최소 10자 이상 및 금지어 체크 추가
+  bio: z.string().trim().superRefine((val, ctx) => {
+    const bannedWords = ["바보", "멍청이", "비속어테스트용단어"];
+    const hasBannedWord = bannedWords.some((word) => val.includes(word));
+
+    // 💡 금지어 체크를 맨 위로 올려서 글자 수와 상관없이 비속어부터 즉시 잡아냅니다.
+    if (hasBannedWord) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "적절한 내용을 입력해주세요.",
+      });
+    } else if (val.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "자기소개를 입력해주세요.",
+      });
+    } else if (val.length < 10) {
+      const missingChars = 10 - val.length;
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `자기소개를 ${missingChars}자 더 입력해주세요.`,
+      });
+    }
+  }),
   // [2번, 3번 TODO (Y) 해결] 역할과 협업 스타일은 빈 문자열("") 통과 방지! 최소 1자 필수! 각 태그 주머니(배열, array)에 최소 1개(.min(1))의 알맹이는 들어있어야 통과!
   role: z.string().trim().min(1, { message: "역할을 선택해주세요." }),
   collaborationStyle: z.string().trim().min(1, { message: "협업 스타일을 선택해주세요." }),
