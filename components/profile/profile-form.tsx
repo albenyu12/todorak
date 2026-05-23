@@ -64,27 +64,27 @@ export default function ProfileForm() {
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
       <Field label="이름" required error={errors.name}>
         <input
-          className="input"
+          className={`input ${errors.name ? "border-red-400 focus:border-red-400 focus:ring-red-100" : ""}`}
           placeholder="홍길동"
           value={form.name ?? ""}
-          onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+          onChange={(e) => { setErrors((p) => ({ ...p, name: "" })); setForm((p) => ({ ...p, name: e.target.value })); }}
         />
       </Field>
 
       <Field label="학과" required error={errors.department}>
         <input
-          className="input"
+          className={`input ${errors.department ? "border-red-400 focus:border-red-400 focus:ring-red-100" : ""}`}
           placeholder="컴퓨터공학과"
           value={form.department ?? ""}
-          onChange={(e) => setForm((p) => ({ ...p, department: e.target.value }))}
+          onChange={(e) => { setErrors((p) => ({ ...p, department: "" })); setForm((p) => ({ ...p, department: e.target.value })); }}
         />
       </Field>
 
       <Field label="학년" required error={errors.year}>
         <select
-          className="input"
+          className={`input ${errors.year ? "border-red-400 focus:border-red-400 focus:ring-red-100" : ""}`}
           value={form.year ?? ""}
-          onChange={(e) => setForm((p) => ({ ...p, year: e.target.value }))}
+          onChange={(e) => { setErrors((p) => ({ ...p, year: "" })); setForm((p) => ({ ...p, year: e.target.value })); }}
         >
           <option value="">선택</option>
           {[1, 2, 3, 4].map((y) => (
@@ -102,7 +102,7 @@ export default function ProfileForm() {
               onClick={() => { setForm((p) => ({ ...p, role: opt })); setErrors((p) => ({ ...p, role: "" })); }}
               className={`rounded-full px-3 py-1 text-sm transition-colors ${
                 form.role === opt
-                  ? "border-2 border-indigo-500 bg-indigo-50 text-indigo-600 font-medium"
+                  ? "border border-indigo-500 bg-indigo-50 text-indigo-600 font-medium"
                   : "border border-gray-300 text-gray-600 hover:border-indigo-300"
               }`}
             >
@@ -129,7 +129,7 @@ export default function ProfileForm() {
               onClick={() => { setForm((p) => ({ ...p, collaborationStyle: opt })); setErrors((p) => ({ ...p, collaborationStyle: "" })); }}
               className={`rounded-full px-3 py-1 text-sm transition-colors ${
                 form.collaborationStyle === opt
-                  ? "border-2 border-indigo-500 bg-indigo-50 text-indigo-600 font-medium"
+                  ? "border border-indigo-500 bg-indigo-50 text-indigo-600 font-medium"
                   : "border border-gray-300 text-gray-600 hover:border-indigo-300"
               }`}
             >
@@ -157,10 +157,10 @@ export default function ProfileForm() {
 
       <Field label="자기소개" error={errors.bio}>
         <textarea
-          className="input min-h-[80px] resize-none"
+          className={`input min-h-[80px] resize-none ${errors.bio ? "border-red-400 focus:border-red-400 focus:ring-red-100" : ""}`}
           placeholder="간단하게 본인을 소개해주세요"
           value={form.bio ?? ""}
-          onChange={(e) => setForm((p) => ({ ...p, bio: e.target.value }))}
+          onChange={(e) => { setErrors((p) => ({ ...p, bio: "" })); setForm((p) => ({ ...p, bio: e.target.value })); }}
         />
       </Field>
 
@@ -212,7 +212,7 @@ function TagPicker({
           onClick={() => onToggle(opt)}
           className={`rounded-full px-3 py-1 text-sm transition-colors ${
             selected.includes(opt)
-              ? "border-2 border-indigo-500 bg-indigo-50 text-indigo-600 font-medium"
+              ? "border border-indigo-500 bg-indigo-50 text-indigo-600 font-medium"
               : "border border-gray-300 text-gray-600 hover:border-indigo-300"
           }`}
         >
