@@ -42,9 +42,9 @@ export default function ProfileForm() {
       name: form.name!,
       department: form.department!,
       year: parseInt(form.year!),
-      bio: form.bio!,
+      bio: form.bio || undefined,
       role: form.role as Role,
-      collaborationStyle: form.collaborationStyle as CollaborationStyle,
+      collaborationStyle: form.collaborationStyle ? form.collaborationStyle as CollaborationStyle : undefined,
       interests: form.interests ?? [],
       skills: form.skills ?? [],
       lookingFor: form.lookingFor ?? [],
@@ -65,7 +65,7 @@ export default function ProfileForm() {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-      <Field label="이름" error={errors.name}>
+      <Field label="이름" required error={errors.name}>
         <input
           className="input"
           placeholder="홍길동"
@@ -74,7 +74,7 @@ export default function ProfileForm() {
         />
       </Field>
 
-      <Field label="학과" error={errors.department}>
+      <Field label="학과" required error={errors.department}>
         <input
           className="input"
           placeholder="컴퓨터공학과"
@@ -83,7 +83,7 @@ export default function ProfileForm() {
         />
       </Field>
 
-      <Field label="학년" error={errors.year}>
+      <Field label="학년" required error={errors.year}>
         <select
           className="input"
           value={form.year ?? ""}
@@ -96,32 +96,31 @@ export default function ProfileForm() {
         </select>
       </Field>
 
-      <Field label="자기소개" error={errors.bio}>
-        <textarea
-          className="input min-h-[80px] resize-none"
-          placeholder="간단하게 본인을 소개해주세요"
-          value={form.bio ?? ""}
-          onChange={(e) => setForm((p) => ({ ...p, bio: e.target.value }))}
-        />
-      </Field>
-
-      <Field label="역할" error={errors.role}>
+      <Field label="역할" required error={errors.role}>
         <div className="flex flex-wrap gap-2">
           {ROLE_OPTIONS.map((opt) => (
             <button
               key={opt}
               type="button"
               onClick={() => setForm((p) => ({ ...p, role: opt }))}
-              className={`rounded-full border px-3 py-1 text-sm transition-colors ${
+              className={`rounded-full px-3 py-1 text-sm transition-colors ${
                 form.role === opt
-                  ? "border-indigo-500 bg-indigo-500 text-white"
-                  : "border-gray-300 text-gray-600 hover:border-indigo-300"
+                  ? "border-2 border-indigo-500 bg-indigo-50 text-indigo-600 font-medium"
+                  : "border border-gray-300 text-gray-600 hover:border-indigo-300"
               }`}
             >
               {opt}
             </button>
           ))}
         </div>
+      </Field>
+
+      <Field label="보유 스킬" required error={errors.skills}>
+        <TagPicker
+          options={SKILL_OPTIONS}
+          selected={form.skills ?? []}
+          onToggle={(v) => toggleTag("skills", v)}
+        />
       </Field>
 
       <Field label="협업 스타일" error={errors.collaborationStyle}>
@@ -131,10 +130,10 @@ export default function ProfileForm() {
               key={opt}
               type="button"
               onClick={() => setForm((p) => ({ ...p, collaborationStyle: opt }))}
-              className={`rounded-full border px-3 py-1 text-sm transition-colors ${
+              className={`rounded-full px-3 py-1 text-sm transition-colors ${
                 form.collaborationStyle === opt
-                  ? "border-amber-500 bg-amber-500 text-white"
-                  : "border-gray-300 text-gray-600 hover:border-amber-300"
+                  ? "border-2 border-indigo-500 bg-indigo-50 text-indigo-600 font-medium"
+                  : "border border-gray-300 text-gray-600 hover:border-indigo-300"
               }`}
             >
               {opt}
@@ -143,7 +142,7 @@ export default function ProfileForm() {
         </div>
       </Field>
 
-      <Field label="관심사 (복수 선택)">
+      <Field label="관심사">
         <TagPicker
           options={INTEREST_OPTIONS}
           selected={form.interests ?? []}
@@ -151,19 +150,20 @@ export default function ProfileForm() {
         />
       </Field>
 
-      <Field label="보유 스킬 (복수 선택)">
-        <TagPicker
-          options={SKILL_OPTIONS}
-          selected={form.skills ?? []}
-          onToggle={(v) => toggleTag("skills", v)}
-        />
-      </Field>
-
-      <Field label="찾는 팀원 유형 (복수 선택)">
+      <Field label="찾는 팀원 유형">
         <TagPicker
           options={LOOKING_FOR_OPTIONS}
           selected={form.lookingFor ?? []}
           onToggle={(v) => toggleTag("lookingFor", v)}
+        />
+      </Field>
+
+      <Field label="자기소개" error={errors.bio}>
+        <textarea
+          className="input min-h-[80px] resize-none"
+          placeholder="간단하게 본인을 소개해주세요"
+          value={form.bio ?? ""}
+          onChange={(e) => setForm((p) => ({ ...p, bio: e.target.value }))}
         />
       </Field>
 
@@ -176,16 +176,21 @@ export default function ProfileForm() {
 
 function Field({
   label,
+  required,
   error,
   children,
 }: {
   label: string;
+  required?: boolean;
   error?: string;
   children: React.ReactNode;
 }) {
   return (
     <div>
-      <label className="mb-1 block text-sm font-medium text-gray-700">{label}</label>
+      <label className="mb-1 block text-sm font-medium text-gray-700">
+        {label}
+        {required && <span className="ml-0.5 text-red-500">*</span>}
+      </label>
       {children}
       {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
     </div>
@@ -208,13 +213,13 @@ function TagPicker({
           key={opt}
           type="button"
           onClick={() => onToggle(opt)}
-          className={`rounded-full border px-3 py-1 text-sm transition-colors ${
+          className={`rounded-full px-3 py-1 text-sm transition-colors ${
             selected.includes(opt)
-              ? "border-indigo-500 bg-indigo-500 text-white"
-              : "border-gray-300 text-gray-600 hover:border-indigo-300"
+              ? "border-2 border-indigo-500 bg-indigo-50 text-indigo-600 font-medium"
+              : "border border-gray-300 text-gray-600 hover:border-indigo-300"
           }`}
         >
-          {opt}
+          {selected.includes(opt) ? `✓ ${opt}` : opt}
         </button>
       ))}
     </div>

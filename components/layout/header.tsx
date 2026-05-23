@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 // TODO (B): 레이아웃 / 반응형 개선
 // 입력값: 현재 max-w-2xl 중앙 정렬 구조
@@ -22,10 +22,13 @@ import { usePathname } from "next/navigation";
 const NAV_LINKS = [
   { href: "/recommendations", label: "추천" },
   { href: "/answers", label: "Q&A" },
+  { href: "/profile", label: "프로필" },
 ];
 
 export default function Header() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const isEditMode = pathname === "/onboarding" && searchParams.get("edit") === "true";
 
   return (
     <header className="sticky top-0 z-10 border-b border-gray-200 bg-white px-4 py-3">
@@ -33,21 +36,26 @@ export default function Header() {
         <Link href="/" className="text-lg font-bold text-indigo-600">
           토도락
         </Link>
-        {/* TODO (B): 데스크탑 nav 링크 스타일 */}
         <nav className="hidden md:flex gap-4">
-          {NAV_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`text-sm transition-colors ${
-                pathname.startsWith(link.href)
-                  ? "font-semibold text-indigo-600"
-                  : "text-gray-500 hover:text-gray-900"
-              }`}
-            >
-              {link.label}
+          {pathname === "/" ? (
+            <Link href="/onboarding" className="btn-primary text-sm px-4 py-1.5">
+              로그인
             </Link>
-          ))}
+          ) : pathname === "/onboarding" && !isEditMode ? null : (
+            NAV_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`text-sm transition-colors ${
+                  pathname.startsWith(link.href)
+                    ? "font-semibold text-indigo-600"
+                    : "text-gray-500 hover:text-gray-900"
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))
+          )}
         </nav>
       </div>
     </header>

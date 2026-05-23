@@ -23,11 +23,15 @@ export default function StudentCard({ student, matchReasons }: StudentCardProps)
               <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-xs text-indigo-600">
                 {student.role}
               </span>
-              <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs text-amber-600">
-                {student.collaborationStyle}
-              </span>
+              {student.collaborationStyle && (
+                <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs text-amber-600">
+                  {student.collaborationStyle}
+                </span>
+              )}
             </div>
-            <p className="mt-1 text-sm text-gray-600 line-clamp-2">{student.bio}</p>
+            {student.bio && (
+              <p className="mt-1 text-sm text-gray-600 line-clamp-2">{student.bio}</p>
+            )}
             <div className="mt-2 flex flex-wrap gap-1">
               {student.skills.map((skill) => (
                 <span

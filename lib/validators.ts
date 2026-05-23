@@ -41,10 +41,12 @@ export function validateProfileForm(
   if (!data.year) {
     errors.push({ field: "year", message: "학년을 선택해주세요." });
   }
-  if (!data.bio || data.bio.trim().length < 10) {
-    errors.push({ field: "bio", message: "자기소개를 10자 이상 입력해주세요." });
+  if (!data.role) {
+    errors.push({ field: "role", message: "역할을 선택해주세요." });
   }
-  // TODO (Y): role, collaborationStyle, interests, skills, lookingFor 검증 추가
+  if (!data.skills || data.skills.length === 0) {
+    errors.push({ field: "skills", message: "보유 스킬을 1개 이상 선택해주세요." });
+  }
 
   return errors;
 }
