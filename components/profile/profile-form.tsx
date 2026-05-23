@@ -9,12 +9,10 @@ import { saveCurrentUser } from "@/lib/localStorage";
 const ROLE_OPTIONS: Role[] = ["개발자", "디자이너", "PM", "마케터", "데이터분석가"];
 const COLLABORATION_STYLE_OPTIONS: CollaborationStyle[] = ["리더형", "서포터형", "독립형", "협력형"];
 const INTEREST_OPTIONS = [
-  "웹개발", "모바일", "AI", "데이터", "디자인", "마케팅",
-  "스타트업", "게임개발", "오픈소스", "브랜딩", "기획", "독서", "운동",
+  "웹개발", "모바일", "AI", "데이터", "디자인", "마케팅", "스타트업", "게임개발", "오픈소스", "브랜딩", "기획", "독서", "운동",
 ];
 const SKILL_OPTIONS = [
-  "React", "Node.js", "TypeScript", "Python", "Swift", "Kotlin",
-  "Flutter", "Figma", "Illustrator", "After Effects", "기획", "데이터분석", "SQL",
+  "React", "Node.js", "TypeScript", "Python", "Swift", "Kotlin", "Flutter", "Figma", "Illustrator", "After Effects", "기획", "데이터분석", "SQL",
 ];
 const LOOKING_FOR_OPTIONS: Role[] = ["개발자", "디자이너", "PM", "마케터", "데이터분석가"];
 
@@ -31,7 +29,7 @@ export default function ProfileForm() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const validationErrors = validateOnboardingForm(form);
+    const validationErrors = validateOnboardingForm(form, true);
     if (validationErrors.length > 0) {
       setErrors(Object.fromEntries(validationErrors.map((err) => [err.field, err.message])));
       return;
@@ -57,9 +55,8 @@ export default function ProfileForm() {
 
   function toggleTag(field: "interests" | "skills" | "lookingFor", value: string) {
     const current = (form[field] as string[]) ?? [];
-    const updated = current.includes(value)
-      ? current.filter((v) => v !== value)
-      : [...current, value];
+    const updated = current.includes(value) ? current.filter((v) => v !== value) : [...current, value];
+    setErrors((prev) => ({ ...prev, [field]: "" }));
     setForm((prev) => ({ ...prev, [field]: updated }));
   }
 
@@ -91,7 +88,7 @@ export default function ProfileForm() {
         >
           <option value="">선택</option>
           {[1, 2, 3, 4].map((y) => (
-            <option key={y} value={y}>{y}학년</option>
+            <option key={y} value={String(y)}>{y}학년</option>
           ))}
         </select>
       </Field>
@@ -102,7 +99,7 @@ export default function ProfileForm() {
             <button
               key={opt}
               type="button"
-              onClick={() => setForm((p) => ({ ...p, role: opt }))}
+              onClick={() => { setForm((p) => ({ ...p, role: opt })); setErrors((p) => ({ ...p, role: "" })); }}
               className={`rounded-full px-3 py-1 text-sm transition-colors ${
                 form.role === opt
                   ? "border-2 border-indigo-500 bg-indigo-50 text-indigo-600 font-medium"
@@ -129,7 +126,7 @@ export default function ProfileForm() {
             <button
               key={opt}
               type="button"
-              onClick={() => setForm((p) => ({ ...p, collaborationStyle: opt }))}
+              onClick={() => { setForm((p) => ({ ...p, collaborationStyle: opt })); setErrors((p) => ({ ...p, collaborationStyle: "" })); }}
               className={`rounded-full px-3 py-1 text-sm transition-colors ${
                 form.collaborationStyle === opt
                   ? "border-2 border-indigo-500 bg-indigo-50 text-indigo-600 font-medium"
@@ -142,7 +139,7 @@ export default function ProfileForm() {
         </div>
       </Field>
 
-      <Field label="관심사">
+      <Field label="관심사" error={errors.interests}>
         <TagPicker
           options={INTEREST_OPTIONS}
           selected={form.interests ?? []}
@@ -150,7 +147,7 @@ export default function ProfileForm() {
         />
       </Field>
 
-      <Field label="찾는 팀원 유형">
+      <Field label="찾는 팀원 유형" error={errors.lookingFor}>
         <TagPicker
           options={LOOKING_FOR_OPTIONS}
           selected={form.lookingFor ?? []}
