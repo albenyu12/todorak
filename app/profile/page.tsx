@@ -34,7 +34,7 @@ export default function ProfilePage() {
     <div className="page-container">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">내 프로필</h1>
-        <Link href="/onboarding" className="text-sm text-indigo-600 hover:underline">
+        <Link href="/onboarding?edit=true" className="text-sm text-indigo-600 hover:underline">
           수정
         </Link>
       </div>

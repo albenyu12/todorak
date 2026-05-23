@@ -21,9 +21,9 @@ export interface StudentProfile {
   name: string;
   department: string;
   year: number;
-  bio: string;
+  bio?: string;
   role: Role;
-  collaborationStyle: CollaborationStyle;
+  collaborationStyle?: CollaborationStyle;
   interests: string[];
   skills: string[];
   lookingFor: Role[];
@@ -66,7 +66,7 @@ export interface OnboardingFormData {
   name: string;
   department: string;
   year: string;
-  bio: string;
+  bio?: string;
   role: Role | "";
   collaborationStyle: CollaborationStyle | "";
   interests: string[];
