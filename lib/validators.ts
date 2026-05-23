@@ -1,24 +1,4 @@
-// TODO (Y): zod 스키마 기반 검증으로 전환
-// 입력값: 각 validate 함수의 data 파라미터
-// 해야 할 일: npm install zod 후 z.object({ ... }).safeParse(data)로 교체,
-//             현재 반환 타입(ValidationError[])은 그대로 유지
-// 완료 기준: 모든 validate 함수가 zod 스키마로 동작하고 타입 안정성이 높아짐
-
-// TODO (Y): validateProfileForm — role / collaborationStyle 필수 검증 추가
-// 입력값: data.role (Role | ""), data.collaborationStyle (CollaborationStyle | "")
-// 해야 할 일: 빈 문자열이면 ValidationError push
-// 완료 기준: role/collaborationStyle 미선택 시 폼에 에러 메시지 표시
-
-// TODO (Y): validateProfileForm — 태그 최소 선택 수 검증
-// 입력값: data.interests[], data.skills[], data.lookingFor[]
-// 해야 할 일: 각 배열 length === 0이면 에러 추가 (최소 1개 이상)
-// 완료 기준: 태그를 하나도 선택하지 않으면 해당 필드에 에러 표시
-
-// TODO (Y): validateAnswerInput — 최소 글자 수 검증 세분화
-// 입력값: text (string), minLength (number, 기본 10)
-// 해야 할 일: 공백 제거 후 length 검사, 에러 메시지에 몇 자 더 필요한지 표시
-// 완료 기준: "8자 더 입력해주세요" 형태의 메시지가 표시됨
-
+import { z } from "zod";
 import { OnboardingFormData } from "@/lib/types";
 
 export interface ValidationError {
@@ -26,67 +6,99 @@ export interface ValidationError {
   message: string;
 }
 
-// 프로필 입력 검증
+const profileFormSchema = z.object({
+  name: z.string().trim().min(1, { message: "이름을 입력해주세요." }),
+  department: z.string().trim().min(1, { message: "학과를 입력해주세요." }),
+  year: z.string().trim().min(1, { message: "학년을 선택해주세요." }).or(z.number()),
+  bio: z.string().trim().superRefine((val, ctx) => {
+    const bannedWords = ["바보", "멍청이"];
+    const hasBannedWord = bannedWords.some((word) => val.includes(word));
+
+    if (hasBannedWord) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "적절한 내용을 입력해주세요." });
+    } else if (val.length === 0) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "자기소개를 입력해주세요." });
+    } else if (val.length < 10) {
+      const missingChars = 10 - val.length;
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: `자기소개를 ${missingChars}자 더 입력해주세요.` });
+    }
+  }),
+  role: z.string().trim().min(1, { message: "역할을 선택해주세요." }),
+  collaborationStyle: z.string().trim().min(1, { message: "협업 스타일을 선택해주세요." }),
+  interests: z.array(z.string()).min(1, { message: "관심사를 최소 1개 이상 선택해주세요." }),
+  skills: z.array(z.string()).min(1, { message: "기술 스택을 최소 1개 이상 선택해주세요." }),
+  lookingFor: z.array(z.string()).min(1, { message: "찾는 팀원 조건을 최소 1개 이상 선택해주세요." }),
+});
+
 export function validateProfileForm(
-  data: Partial<OnboardingFormData>
+  data: Partial<OnboardingFormData>,
+  isFinalSubmit = false
 ): ValidationError[] {
   const errors: ValidationError[] = [];
 
-  if (!data.name || data.name.trim().length === 0) {
-    errors.push({ field: "name", message: "이름을 입력해주세요." });
+  const addError = (field: string, result: { success: boolean; error?: { issues: { message: string }[] } }) => {
+    if (!result.success && result.error && result.error.issues.length > 0) {
+      errors.push({ field, message: result.error.issues[0].message });
+    }
+  };
+
+  if (isFinalSubmit || data.name !== undefined) {
+    addError("name", profileFormSchema.shape.name.safeParse(data.name ?? ""));
   }
-  if (!data.department || data.department.trim().length === 0) {
-    errors.push({ field: "department", message: "학과를 입력해주세요." });
+  if (isFinalSubmit || data.department !== undefined) {
+    addError("department", profileFormSchema.shape.department.safeParse(data.department ?? ""));
   }
-  if (!data.year) {
-    errors.push({ field: "year", message: "학년을 선택해주세요." });
+  if (isFinalSubmit || data.year !== undefined) {
+    addError("year", profileFormSchema.shape.year.safeParse(data.year ?? ""));
   }
-  if (!data.bio || data.bio.trim().length < 10) {
-    errors.push({ field: "bio", message: "자기소개를 10자 이상 입력해주세요." });
+  if (isFinalSubmit || data.bio !== undefined) {
+    addError("bio", profileFormSchema.shape.bio.safeParse(data.bio ?? ""));
   }
-  // TODO (Y): role, collaborationStyle, interests, skills, lookingFor 검증 추가
+  if (isFinalSubmit || data.role !== undefined) {
+    addError("role", profileFormSchema.shape.role.safeParse(data.role ?? ""));
+  }
+  if (isFinalSubmit || data.collaborationStyle !== undefined) {
+    addError("collaborationStyle", profileFormSchema.shape.collaborationStyle.safeParse(data.collaborationStyle ?? ""));
+  }
+  if (isFinalSubmit || data.interests !== undefined) {
+    addError("interests", profileFormSchema.shape.interests.safeParse(data.interests ?? []));
+  }
+  if (isFinalSubmit || data.skills !== undefined) {
+    addError("skills", profileFormSchema.shape.skills.safeParse(data.skills ?? []));
+  }
+  if (isFinalSubmit || data.lookingFor !== undefined) {
+    addError("lookingFor", profileFormSchema.shape.lookingFor.safeParse(data.lookingFor ?? []));
+  }
 
   return errors;
 }
 
-// 기존 이름 유지 (ProfileForm.tsx 호환)
 export const validateOnboardingForm = validateProfileForm;
 
-// 질문 입력 검증
 export function validateQuestionInput(text: string): ValidationError[] {
   const errors: ValidationError[] = [];
 
   // TODO (Y): 금지어 필터 추가
-  // 입력값: text (사용자가 직접 입력한 질문)
-  // 해야 할 일: 부적절한 단어 목록을 만들고 포함 여부 체크
-  // 완료 기준: 금지어 포함 시 "적절한 질문을 입력해주세요" 에러 표시
-
   if (!text || text.trim().length === 0) {
     errors.push({ field: "text", message: "질문을 입력해주세요." });
   } else if (text.trim().length < 5) {
     errors.push({ field: "text", message: "질문을 5자 이상 입력해주세요." });
   }
-
   return errors;
 }
 
-// 답변 입력 검증
 export function validateAnswerInput(
   text: string,
   minLength = 10
 ): ValidationError[] {
   const errors: ValidationError[] = [];
-  const trimmed = text.trim();
+  const trimmed = text ? text.trim() : "";
 
   if (trimmed.length === 0) {
     errors.push({ field: "answerText", message: "답변을 입력해주세요." });
   } else if (trimmed.length < minLength) {
-    // TODO (Y): 에러 메시지에 부족한 글자 수 표시 ("N자 더 입력해주세요")
-    errors.push({
-      field: "answerText",
-      message: `답변을 ${minLength}자 이상 입력해주세요.`,
-    });
+    const missingChars = minLength - trimmed.length;
+    errors.push({ field: "answerText", message: `${missingChars}자 더 입력해주세요.` });
   }
-
   return errors;
 }
