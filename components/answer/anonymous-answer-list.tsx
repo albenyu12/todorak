@@ -5,7 +5,8 @@
 "use client";
 
 import { useState } from "react";
-import { Answer } from "@/lib/types";
+import { Answer, QuestionCategory } from "@/lib/types";
+import { QUESTIONS } from "@/lib/questions";
 import AnswerCard from "./answer-card";
 import EmptyAnswerState from "./empty-answer-state";
 
@@ -14,21 +15,46 @@ interface AnonymousAnswerListProps {
 }
 
 type SortOrder = "latest" | "oldest";
+type CategoryFilter = "all" | QuestionCategory;
 
-// TODO (H): 카테고리 필터 추가 (선택)
-// 입력값: answers 배열, activeCategory 상태
-// 해야 할 일: QUESTIONS에서 각 answer의 questionId로 category 조회 후 필터링
-// 완료 기준: 카테고리 탭 클릭 시 해당 카테고리 답변만 표시
+const CATEGORY_LABELS: Record<QuestionCategory, string> = {
+  collaboration: "협업",
+  role: "역할",
+  conflict: "갈등",
+  work_style: "작업 방식",
+  interest: "관심사",
+  goal: "목표",
+};
+
+const tabClass = (active: boolean) =>
+  `rounded-lg px-3 py-1.5 text-xs ${
+    active
+      ? "bg-indigo-100 font-medium text-indigo-700"
+      : "text-gray-500 hover:bg-gray-100"
+  }`;
+
+// questionId로 QUESTIONS에서 카테고리 조회 (직접 입력 질문은 null)
+function getAnswerCategory(questionId: string): QuestionCategory | null {
+  return QUESTIONS.find((q) => q.id === questionId)?.category ?? null;
+}
 
 export default function AnonymousAnswerList({ answers }: AnonymousAnswerListProps) {
-  // recordedAt 기준 정렬 방향 (최신순 / 오래된순)
   const [sortOrder, setSortOrder] = useState<SortOrder>("latest");
+  // "all"이면 전체, 특정 카테고리면 해당 답변만 표시
+  const [activeCategory, setActiveCategory] = useState<CategoryFilter>("all");
 
   if (answers.length === 0) {
     return <EmptyAnswerState />;
   }
 
-  const sortedAnswers = [...answers].sort((a, b) => {
+  const filteredAnswers =
+    activeCategory === "all"
+      ? answers
+      : answers.filter(
+          (answer) => getAnswerCategory(answer.questionId) === activeCategory,
+        );
+
+  const sortedAnswers = [...filteredAnswers].sort((a, b) => {
     const diff =
       new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime();
     return sortOrder === "latest" ? -diff : diff;
@@ -36,34 +62,53 @@ export default function AnonymousAnswerList({ answers }: AnonymousAnswerListProp
 
   return (
     <div className="flex flex-col gap-3">
-      {/* 정렬 토글: 클릭 시 recordedAt 기준으로 목록 순서 즉시 변경 */}
+      {/* 카테고리 탭: QUESTIONS 기준으로 필터 */}
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => setActiveCategory("all")}
+          className={tabClass(activeCategory === "all")}
+        >
+          전체
+        </button>
+        {(Object.keys(CATEGORY_LABELS) as QuestionCategory[]).map((category) => (
+          <button
+            key={category}
+            type="button"
+            onClick={() => setActiveCategory(category)}
+            className={tabClass(activeCategory === category)}
+          >
+            {CATEGORY_LABELS[category]}
+          </button>
+        ))}
+      </div>
+
       <div className="flex justify-end gap-2">
         <button
           type="button"
           onClick={() => setSortOrder("latest")}
-          className={`rounded-lg px-3 py-1.5 text-xs ${
-            sortOrder === "latest"
-              ? "bg-indigo-100 font-medium text-indigo-700"
-              : "text-gray-500 hover:bg-gray-100"
-          }`}
+          className={tabClass(sortOrder === "latest")}
         >
           최신순
         </button>
         <button
           type="button"
           onClick={() => setSortOrder("oldest")}
-          className={`rounded-lg px-3 py-1.5 text-xs ${
-            sortOrder === "oldest"
-              ? "bg-indigo-100 font-medium text-indigo-700"
-              : "text-gray-500 hover:bg-gray-100"
-          }`}
+          className={tabClass(sortOrder === "oldest")}
         >
           오래된순
         </button>
       </div>
-      {sortedAnswers.map((answer) => (
-        <AnswerCard key={answer.id} answer={answer} />
-      ))}
+
+      {sortedAnswers.length === 0 ? (
+        <p className="py-12 text-center text-sm text-gray-400">
+          이 카테고리에 해당하는 답변이 없어요.
+        </p>
+      ) : (
+        sortedAnswers.map((answer) => (
+          <AnswerCard key={answer.id} answer={answer} />
+        ))
+      )}
     </div>
   );
 }
