@@ -15,6 +15,7 @@
 // 해야 할 일: 서버 API 또는 DB 연동 준비되면 MOCK_STUDENTS를 fetch 함수로 교체
 // 완료 기준: MOCK_STUDENTS를 import하던 파일들이 fetch 기반 데이터 소스로 전환됨
 
+// [2번 todo 해결 : 외부 컴포넌트가 참조하는 데이터 형식을 StudentProfile 인터페이스로 강제하여 추후 비동기 fetch API로 교체해도 깨지지 않는 구조 확보]
 import { StudentProfile } from "@/lib/types";
 
 export const MOCK_STUDENTS: StudentProfile[] = [
