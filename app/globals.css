@@ -29,6 +29,24 @@
   body {
     @apply bg-gray-50 text-gray-900;
   }
+
+  *:focus-visible {
+    @apply outline-none ring-2 ring-indigo-400 ring-offset-2;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-gray-300;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400;
+  }
 }
 
 /* 기존 유틸리티 클래스 — 점진적으로 components/ui 로 이전 예정 */
