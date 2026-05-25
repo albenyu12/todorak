@@ -26,7 +26,9 @@ export default function Card({ className = "", children, onClick }: CardProps) {
       onClick={onClick}
       className={[
         "rounded-xl border border-gray-200 bg-white p-4",
-        onClick ? "cursor-pointer hover:border-indigo-300 hover:shadow-sm transition-all" : "",
+        onClick
+          ? "cursor-pointer hover:border-indigo-300 hover:shadow-sm active:scale-[0.99] active:shadow-none transition-all select-none"
+          : "",
         className,
       ]
         .filter(Boolean)
