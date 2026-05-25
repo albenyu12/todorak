@@ -33,7 +33,7 @@ export default function Badge({ variant = "default", className = "", children }:
   return (
     <span
       className={[
-        "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+        "inline-flex items-center rounded-full px-3 py-1 text-xs font-medium leading-none whitespace-nowrap",
         variantStyles[variant],
         className,
       ]
