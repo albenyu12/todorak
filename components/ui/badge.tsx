@@ -22,11 +22,11 @@ interface BadgeProps {
 }
 
 const variantStyles: Record<BadgeVariant, string> = {
-  default: "bg-gray-100 text-gray-700",
-  role: "bg-indigo-50 text-indigo-700",
-  collaboration: "bg-amber-50 text-amber-700",
-  category: "bg-gray-100 text-gray-500",
-  match: "bg-green-50 text-green-700",
+  default: "bg-gray-100 text-gray-600",
+  role: "bg-indigo-100 text-indigo-700",
+  collaboration: "bg-amber-100 text-amber-700",
+  category: "bg-slate-100 text-slate-500",
+  match: "bg-emerald-100 text-emerald-700",
 };
 
 export default function Badge({ variant = "default", className = "", children }: BadgeProps) {
