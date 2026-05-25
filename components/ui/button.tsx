@@ -55,7 +55,7 @@ export default function Button({
   return (
     <button
       className={[
-        "inline-flex items-center justify-center rounded-lg font-semibold transition-colors",
+        "inline-flex items-center justify-center rounded-lg font-semibold transition-colors min-h-[44px]",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2",
         "disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none",
         variantStyles[variant],
