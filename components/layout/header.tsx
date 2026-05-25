@@ -38,7 +38,7 @@ function HeaderNav() {
         <Link
           key={link.href}
           href={link.href}
-          className={`text-sm transition-colors ${
+          className={`px-2 py-1.5 text-sm transition-colors ${
             pathname.startsWith(link.href)
               ? "font-semibold text-indigo-600"
               : "text-gray-500 hover:text-gray-900"
@@ -65,7 +65,7 @@ export default function Header() {
         <Link href={logoHref} className="text-lg font-bold text-indigo-600">
           토도락
         </Link>
-        <nav className="hidden md:flex gap-4">
+        <nav className="hidden md:flex items-center gap-2">
           <Suspense>
             <HeaderNav />
           </Suspense>
