@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  env: {
+    NEXT_PUBLIC_SERVER_START_TIME: Date.now().toString(),
+  },
 };
 
 export default nextConfig;
