@@ -31,7 +31,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
-    "bg-indigo-600 text-white hover:bg-indigo-700 active:bg-indigo-800",
+    "bg-indigo-600 text-white hover:bg-indigo-700 active:bg-indigo-800 shadow-md hover:shadow-lg hover:-translate-y-px active:translate-y-0 active:shadow-md",
   secondary:
     "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 active:bg-gray-100",
   ghost:
@@ -55,7 +55,7 @@ export default function Button({
   return (
     <button
       className={[
-        "inline-flex items-center justify-center rounded-lg font-semibold transition-colors min-h-[44px]",
+        "inline-flex items-center justify-center rounded-lg font-semibold transition-all min-h-[44px]",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2",
         "disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none",
         variantStyles[variant],
