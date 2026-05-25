@@ -5,7 +5,7 @@
 // 완료 기준: lookingFor에 "디자이너"가 있고 student.role이 "디자이너"이면 매칭됨
 
 // 2번 TODO (Y): collaborationStyle 궁합 점수 추가
-// 입력값: currentUser.collaborationStyle, student.collaborationStyle
+// 입력값: currentUser.lookingFor, student.role, currentUser.collaborationStyle, student.collaborationStyle
 // 해야 할 일: 궁합 매트릭스 정의 (예: 리더형 + 서포터형 → +20, 리더형 + 리더형 → -5)
 //             COLLABORATION_AFFINITY 객체로 관리
 // 완료 기준: collaborationStyle 조합에 따라 점수가 달라지고 matchReasons에 반영됨
@@ -44,6 +44,9 @@ export function getRecommendations(
 ): RecommendationResult[] {
   const others = allStudents.filter((s) => s.id !== currentUser.id);
 
+  // exploredStudentIds의 유효성 검증
+  const safeExploredIds = Array.isArray(exploredStudentIds) ? exploredStudentIds : [];
+
   const scored = others.map((student) => {
     let score = 0;
     const matchReasons: string[] = [];
@@ -53,23 +56,25 @@ export function getRecommendations(
       student.interests.includes(i)
     );
     if (sharedInterests.length > 0) {
-      score += sharedInterests.length * 10;
-      matchReasons.push(`공통 관심사: ${sharedInterests.join(", ")}`);
+      const interestScore = sharedInterests.length * 10;
+      score += interestScore;
+      matchReasons.push(`공통 관심사: ${sharedInterests.join(", ")} (+${interestScore}점)`);
     }
 
+    // 1번 TODO (Y): role 정확 매칭 및 가산점 텍스트 명시
     const wantsFromStudent = currentUser.lookingFor.includes(student.role);
     if (wantsFromStudent) {
       score += 20;
-      matchReasons.push("찾고 있는 역할 보유");
+      matchReasons.push("찾고 있는 역할 보유 (+20점)");
     }
 
     const studentWantsMe = student.lookingFor.includes(currentUser.role);
     if (studentWantsMe) {
       score += 15;
-      matchReasons.push("상대방이 찾는 역할 보유");
+      matchReasons.push("상대방이 찾는 역할 보유 (+15점)");
     }
 
-    //2번 TODO 해결(Y) : COLLABORATION_AFFINITY 객체를 활용한 점수 계산 및 반영 완료
+    // 2번 TODO 해결(Y) : COLLABORATION_AFFINITY 객체를 활용한 점수 계산 및 반영 완료
     const myStyle = currentUser.collaborationStyle;
     const studentStyle = student.collaborationStyle;
 
@@ -78,15 +83,13 @@ export function getRecommendations(
       score += affinityScore;
 
       if (affinityScore > 0) {
-        matchReasons.push(`새로운 성향 탐색: 나와 다른 스타일 (${studentStyle}) (+${affinityScore}점)`);
+        matchReasons.push(`협업 스타일 보완 (${studentStyle}) (+${affinityScore}점)`);
       } else {
-        matchReasons.push(`성향 중복: 나와 동일한 스타일 (${myStyle}) (${affinityScore}점)`);
+        matchReasons.push(`협업 스타일 중복 (${myStyle}) (${affinityScore}점)`);
       }
     }
 
     // 3번 TODO 해결(Y): 차이 기반 추천 (보완성 강화)
-    // ========================================================
-    // 상대방의 스킬 중 내가 가지고 있지 않은 스킬(차집합)만 필터링
     const complementarySkills = student.skills.filter(
       (skill) => !currentUser.skills.includes(skill)
     );
@@ -95,18 +98,28 @@ export function getRecommendations(
       const skillScore = complementarySkills.length * 5;
       score += skillScore;
       matchReasons.push(
-        `기술 스택 보완성: 나에게 없는 기술 보유 (${complementarySkills.join(", ")}) (+${skillScore}점)`
+        `보유 스킬 보완 (${complementarySkills.join(", ")}) (+${skillScore}점)`
       );
     }
 
-    // 미탐색 학생 부스트 (6번 TODO Y: 패널티 방식으로 전환)
-    if (!exploredStudentIds.includes(student.id)) {
-      score += 5;
-    }
+    // 🔥 [추가 기능] 사유 목록 맨 앞에 총점 줄바꿈 텍스트를 주입하여 카드 최상단에 노출시킵니다.
+    matchReasons.unshift(`🔥 추천 총합 점수: ${score}점`);
 
     return { student, score, matchReasons };
   });
 
-  // 7번 TODO (Y): 동점 처리 시 랜덤 셔플 추가
-  return scored.sort((a, b) => b.score - a.score);
+  // 4번 TODO & 5번 TODO 완벽 통합 정렬 로직
+  return scored.sort((a, b) => {
+    if (b.score !== a.score) {
+      return b.score - a.score;
+    }
+
+    const aExplored = safeExploredIds.includes(a.student.id);
+    const bExplored = safeExploredIds.includes(b.student.id);
+    if (aExplored !== bExplored) {
+      return aExplored ? 1 : -1;
+    }
+
+    return Math.random() - 0.5;
+  });
 }
