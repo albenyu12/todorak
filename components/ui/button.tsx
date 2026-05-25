@@ -52,7 +52,7 @@ export default function Button({
   return (
     <button
       className={[
-        "inline-flex items-center justify-center rounded-lg font-semibold transition-colors",
+        "inline-flex items-center justify-center rounded-lg font-semibold transition-colors min-h-[44px]",
         "disabled:opacity-40 disabled:cursor-not-allowed",
         variantStyles[variant],
         sizeStyles[size],
