@@ -27,6 +27,8 @@
 // 해야 할 일: 동점 처리 시 Math.random() 기반 셔플 또는 소수점 노이즈 추가
 // 완료 기준: 같은 프로필로 반복 방문해도 추천 순서가 매번 완전히 동일하지 않음
 
+import { StudentProfile, RecommendationResult } from "@/lib/types";
+
 // 2번 TODO 해결(Y): COLLABORATION_AFFINITY 객체 정의
 const COLLABORATION_AFFINITY: Record<string, Record<string, number>> = {
   "리더형": { "리더형": -5, "서포터형": 20, "독립형": 20, "협력형": 20 },
@@ -34,8 +36,6 @@ const COLLABORATION_AFFINITY: Record<string, Record<string, number>> = {
   "독립형": { "리더형": 20, "서포터형": 20, "독립형": -5, "협력형": 20 },
   "협력형": { "리더형": 20, "서포터형": 20, "독립형": 20, "협력형": -5 },
 };
-
-import { StudentProfile, RecommendationResult } from "@/lib/types";
 
 export function getRecommendations(
   currentUser: StudentProfile,
@@ -105,21 +105,19 @@ export function getRecommendations(
     // 🔥 [추가 기능] 사유 목록 맨 앞에 총점 줄바꿈 텍스트를 주입하여 카드 최상단에 노출시킵니다.
     matchReasons.unshift(`🔥 추천 총합 점수: ${score}점`);
 
-    return { student, score, matchReasons };
+    // 5번 TODO 해결(Y): 동점 시 랜덤 순서를 위해 score에 소수점 노이즈 부여
+    const noise = Math.random() * 0.001;
+    return { student, score: score + noise, matchReasons };
   });
 
   // 4번 TODO & 5번 TODO 완벽 통합 정렬 로직
   return scored.sort((a, b) => {
-    if (b.score !== a.score) {
-      return b.score - a.score;
-    }
-
     const aExplored = safeExploredIds.includes(a.student.id);
     const bExplored = safeExploredIds.includes(b.student.id);
     if (aExplored !== bExplored) {
       return aExplored ? 1 : -1;
     }
 
-    return Math.random() - 0.5;
+    return b.score - a.score;
   });
 }
