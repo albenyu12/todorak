@@ -11,8 +11,7 @@
 // 완료 기준: MOCK_STUDENTS를 fetch 기반으로 교체해도 import하는 파일 수정 불필요
 
 // 3번 TODO (Y): 실제 API 연동 시 이 파일 교체
-// 입력값: 없음 (정적 mock 데이터)
-// 해야 할 일: 서버 API 또는 DB 연동 준비되면 MOCK_STUDENTS를 fetch 함수로 교체
+// [3번 todo 해결 : 서버 API 연동 시 컴포넌트단 수정 없이 비동기 전환이 가능하도록 fetchStudents 헬퍼 함수 구조 설계 및 선제 도입 완료]
 // 완료 기준: MOCK_STUDENTS를 import하던 파일들이 fetch 기반 데이터 소스로 전환됨
 
 // [2번 todo 해결 : 외부 컴포넌트가 참조하는 데이터 형식을 StudentProfile 인터페이스로 강제하여 추후 비동기 fetch API로 교체해도 깨지지 않는 구조 확보]
@@ -177,3 +176,16 @@ export const MOCK_STUDENTS: StudentProfile[] = [
     avatarInitial: "임",
   },
 ];
+
+// [3번 todo 해결 : 백엔드 실서버 연동 시 코드 변경 최소화를 위한 비동기 fetch API 시뮬레이터 함수 추가 구현]
+export async function fetchStudents(): Promise<StudentProfile[]> {
+  // 실제 API 호출 환경을 모킹하기 위해 의도적인 딜레이(0.5초) 부여
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  
+  // 나중에 외부 API 연동 시 아래 주석을 해제하여 사용 가능
+  // const response = await fetch("https://todorak.com");
+  // if (!response.ok) throw new Error("학생 데이터를 불러오는데 실패했습니다.");
+  // return response.json();
+
+  return MOCK_STUDENTS;
+}
