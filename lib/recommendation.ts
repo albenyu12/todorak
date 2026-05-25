@@ -84,6 +84,21 @@ export function getRecommendations(
       }
     }
 
+    // 3번 TODO 해결(Y): 차이 기반 추천 (보완성 강화)
+    // ========================================================
+    // 상대방의 스킬 중 내가 가지고 있지 않은 스킬(차집합)만 필터링
+    const complementarySkills = student.skills.filter(
+      (skill) => !currentUser.skills.includes(skill)
+    );
+
+    if (complementarySkills.length > 0) {
+      const skillScore = complementarySkills.length * 5;
+      score += skillScore;
+      matchReasons.push(
+        `기술 스택 보완성: 나에게 없는 기술 보유 (${complementarySkills.join(", ")}) (+${skillScore}점)`
+      );
+    }
+
     // 미탐색 학생 부스트 (6번 TODO Y: 패널티 방식으로 전환)
     if (!exploredStudentIds.includes(student.id)) {
       score += 5;
