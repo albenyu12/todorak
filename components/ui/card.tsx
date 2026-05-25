@@ -25,8 +25,10 @@ export default function Card({ className = "", children, onClick }: CardProps) {
     <div
       onClick={onClick}
       className={[
-        "rounded-xl border border-gray-200 bg-white p-4",
-        onClick ? "cursor-pointer hover:border-indigo-300 hover:shadow-sm transition-all" : "",
+        "rounded-xl border border-gray-200 bg-white p-4 shadow-sm",
+        onClick
+          ? "cursor-pointer hover:border-indigo-300 hover:shadow-md transition-all"
+          : "shadow-sm",
         className,
       ]
         .filter(Boolean)
