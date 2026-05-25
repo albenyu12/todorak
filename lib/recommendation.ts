@@ -27,6 +27,14 @@
 // 해야 할 일: 동점 처리 시 Math.random() 기반 셔플 또는 소수점 노이즈 추가
 // 완료 기준: 같은 프로필로 반복 방문해도 추천 순서가 매번 완전히 동일하지 않음
 
+// 2번 TODO 해결(Y): COLLABORATION_AFFINITY 객체 정의
+const COLLABORATION_AFFINITY: Record<string, Record<string, number>> = {
+  "리더형": { "리더형": -5, "서포터형": 20, "독립형": 20, "협력형": 20 },
+  "서포터형": { "리더형": 20, "서포터형": -5, "독립형": 20, "협력형": 20 },
+  "독립형": { "리더형": 20, "서포터형": 20, "독립형": -5, "협력형": 20 },
+  "협력형": { "리더형": 20, "서포터형": 20, "독립형": 20, "협력형": -5 },
+};
+
 import { StudentProfile, RecommendationResult } from "@/lib/types";
 
 export function getRecommendations(
@@ -59,6 +67,21 @@ export function getRecommendations(
     if (studentWantsMe) {
       score += 15;
       matchReasons.push("상대방이 찾는 역할 보유");
+    }
+
+    //2번 TODO 해결(Y) : COLLABORATION_AFFINITY 객체를 활용한 점수 계산 및 반영 완료
+    const myStyle = currentUser.collaborationStyle;
+    const studentStyle = student.collaborationStyle;
+
+    if (COLLABORATION_AFFINITY[myStyle] && COLLABORATION_AFFINITY[myStyle][studentStyle] !== undefined) {
+      const affinityScore = COLLABORATION_AFFINITY[myStyle][studentStyle];
+      score += affinityScore;
+
+      if (affinityScore > 0) {
+        matchReasons.push(`새로운 성향 탐색: 나와 다른 스타일 (${studentStyle}) (+${affinityScore}점)`);
+      } else {
+        matchReasons.push(`성향 중복: 나와 동일한 스타일 (${myStyle}) (${affinityScore}점)`);
+      }
     }
 
     // 미탐색 학생 부스트 (6번 TODO Y: 패널티 방식으로 전환)
