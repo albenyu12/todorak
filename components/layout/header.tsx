@@ -53,14 +53,28 @@ function HeaderNav() {
 
 export default function Header() {
   const [logoHref, setLogoHref] = useState("/");
+  const [hasScroll, setHasScroll] = useState(false);
 
   useEffect(() => {
     const user = getCurrentUser();
     if (user) setLogoHref("/recommendations");
   }, []);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setHasScroll(window.scrollY > 0);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
-    <header className="sticky top-0 z-10 border-b border-gray-200 bg-white px-4 py-3">
+    <header
+      className={`sticky top-0 z-10 border-b border-gray-200 bg-white px-4 py-3 transition-shadow duration-200 ${
+        hasScroll ? "shadow-sm" : ""
+      }`}
+    >
       <div className="mx-auto flex max-w-2xl items-center justify-between">
         <Link href={logoHref} className="text-lg font-bold text-indigo-600">
           토도락
