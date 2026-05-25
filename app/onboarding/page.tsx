@@ -31,7 +31,9 @@ export default function OnboardingPage() {
       <p className="text-sm text-gray-500 mb-6">
         나를 소개하고 맞는 팀원을 추천받으세요.
       </p>
-      <ProfileForm />
+      <Suspense>
+        <ProfileForm />
+      </Suspense>
     </div>
   );
 }
