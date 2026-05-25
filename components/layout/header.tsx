@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { getCurrentUser } from "@/lib/localStorage";
 
 // TODO (B): 레이아웃 / 반응형 개선
 // TODO (B): 활성 링크 스타일 개선
@@ -51,10 +52,17 @@ function HeaderNav() {
 }
 
 export default function Header() {
+  const [logoHref, setLogoHref] = useState("/");
+
+  useEffect(() => {
+    const user = getCurrentUser();
+    if (user) setLogoHref("/recommendations");
+  }, []);
+
   return (
     <header className="sticky top-0 z-10 border-b border-gray-200 bg-white px-4 py-3">
       <div className="mx-auto flex max-w-2xl items-center justify-between">
-        <Link href="/" className="text-lg font-bold text-indigo-600">
+        <Link href={logoHref} className="text-lg font-bold text-indigo-600">
           토도락
         </Link>
         <nav className="hidden md:flex gap-4">
