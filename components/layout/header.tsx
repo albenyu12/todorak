@@ -34,19 +34,22 @@ function HeaderNav() {
 
   return (
     <>
-      {NAV_LINKS.map((link) => (
-        <Link
-          key={link.href}
-          href={link.href}
-          className={`text-sm transition-colors ${
-            pathname.startsWith(link.href)
-              ? "font-semibold text-indigo-600"
-              : "text-gray-500 hover:text-gray-900"
-          }`}
-        >
-          {link.label}
-        </Link>
-      ))}
+      {NAV_LINKS.map((link) => {
+        const isActive = pathname.startsWith(link.href);
+        return (
+          <Link
+            key={link.href}
+            href={link.href}
+            className={`px-2 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
+              isActive
+                ? "text-indigo-600 bg-indigo-50"
+                : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+            }`}
+          >
+            {link.label}
+          </Link>
+        );
+      })}
     </>
   );
 }
