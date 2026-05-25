@@ -30,7 +30,8 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantStyles: Record<ButtonVariant, string> = {
-  primary: "bg-indigo-600 text-white hover:bg-indigo-700",
+  primary:
+    "bg-indigo-600 text-white hover:bg-indigo-700 shadow-md hover:shadow-lg hover:-translate-y-px active:translate-y-0 active:shadow-md",
   secondary: "border border-gray-300 text-gray-700 hover:bg-gray-50",
   ghost: "text-gray-500 hover:text-gray-900 hover:bg-gray-100",
 };
@@ -52,7 +53,7 @@ export default function Button({
   return (
     <button
       className={[
-        "inline-flex items-center justify-center rounded-lg font-semibold transition-colors",
+        "inline-flex items-center justify-center rounded-lg font-semibold transition-all",
         "disabled:opacity-40 disabled:cursor-not-allowed",
         variantStyles[variant],
         sizeStyles[size],
