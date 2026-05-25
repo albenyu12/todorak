@@ -4,6 +4,7 @@ import { QUESTIONS } from "@/lib/questions";
 import Card from "@/components/ui/card";
 import Badge from "@/components/ui/badge";
 import { QuestionCategory } from "@/lib/types";
+import { formatDate } from "@/lib/utils";
 
 interface AnswerCardProps {
   answer: Answer;
@@ -13,11 +14,6 @@ interface AnswerCardProps {
 // 답변자 이름(targetStudentName)을 절대 표시하지 마세요.
 // targetStudentId는 링크(프로필 보기) 전용으로만 사용합니다.
 // 리스트에서는 항상 "익명의 학생"으로만 표시해야 합니다.
-
-// TODO (H): 날짜 포맷 유틸 분리
-// 입력값: answer.recordedAt (ISO 8601 문자열)
-// 해야 할 일: lib/utils.ts에 formatDate(iso: string): string 함수 만들고 교체
-// 완료 기준: 날짜 포맷이 한 곳에서 관리됨
 
 const CATEGORY_LABELS: Record<QuestionCategory, string> = {
   collaboration: "협업",
@@ -59,7 +55,7 @@ export default function AnswerCard({ answer }: AnswerCardProps) {
           {/* ⚠️ 이름 노출 금지: 반드시 "익명의 학생"으로만 표시 */}
           <span className="text-xs text-gray-400">익명의 학생</span>
           <span className="text-xs text-gray-400">
-            {new Date(answer.recordedAt).toLocaleDateString("ko-KR")}
+            {formatDate(answer.recordedAt)}
           </span>
         </div>
       </Card>
