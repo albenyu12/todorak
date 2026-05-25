@@ -78,7 +78,13 @@ export function getRecommendations(
     const myStyle = currentUser.collaborationStyle;
     const studentStyle = student.collaborationStyle;
 
-    if (COLLABORATION_AFFINITY[myStyle] && COLLABORATION_AFFINITY[myStyle][studentStyle] !== undefined) {
+    // [빌드 에러 해결 : myStyle과 studentStyle의 string 타입을 명시적으로 'in' 키워드로 검증하여 인덱싱 타입 제한 통과]
+    if (
+      myStyle && 
+      studentStyle && 
+      myStyle in COLLABORATION_AFFINITY && 
+      studentStyle in COLLABORATION_AFFINITY[myStyle]
+    ) {
       const affinityScore = COLLABORATION_AFFINITY[myStyle][studentStyle];
       score += affinityScore;
 
