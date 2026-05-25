@@ -53,7 +53,8 @@ export default function Button({
     <button
       className={[
         "inline-flex items-center justify-center rounded-lg font-semibold transition-colors",
-        "disabled:opacity-40 disabled:cursor-not-allowed",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2",
+        "disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none",
         variantStyles[variant],
         sizeStyles[size],
         fullWidth ? "w-full" : "",
