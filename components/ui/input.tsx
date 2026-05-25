@@ -23,7 +23,7 @@ export default function Input({ error = false, className = "", ...props }: Input
   return (
     <input
       className={[
-        "w-full rounded-lg border px-3 py-2 text-sm outline-none transition-colors",
+        "w-full rounded-lg border px-3 py-2.5 text-sm outline-none transition-colors min-h-[44px]",
         "focus:ring-2 focus:ring-indigo-100 focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-1",
         "disabled:bg-gray-50 disabled:cursor-not-allowed",
         error
