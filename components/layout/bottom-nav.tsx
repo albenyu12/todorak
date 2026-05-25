@@ -3,14 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-// TODO (B): 모바일 전용 하단 네비게이션 디자인
-// 입력값: NAV_ITEMS 배열 (href, label, icon 자리)
-// 해야 할 일:
-//   1. 각 탭에 아이콘 추가 (lucide-react 또는 SVG inline)
-//   2. safe-area-inset-bottom 대응 (iOS 홈 버튼 영역)
-//   3. 활성 탭 indicator (색상 + 아이콘 변화)
-// 완료 기준: 모바일에서 엄지손가락으로 쉽게 탭 전환 가능
-
 // TODO (B): 데스크탑에서 숨기기
 // 입력값: Tailwind 반응형 클래스
 // 해야 할 일: md:hidden 적용해 데스크탑에서는 Header의 nav만 보이도록
@@ -65,7 +57,7 @@ export default function BottomNav() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-1 flex-col items-center justify-center min-h-[3rem] text-xs transition-colors ${
+              className={`flex flex-1 flex-col items-center justify-center min-h-[3rem] pb-1 pt-2 text-xs transition-colors ${
                 isActive ? "text-indigo-600" : "text-gray-400"
               }`}
             >
