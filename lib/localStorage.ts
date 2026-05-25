@@ -51,6 +51,10 @@ export function saveAnswer(answer: Answer): void {
 
 export function getAnswers(): Answer[] {
   if (typeof window === "undefined") return [];
+  
+  // [1번 todo 해결 : getAnswers 호출 시점에 initMockAnswers를 트리거하여 첫 방문자가 /answers 페이지에 진입했을 때 데이터가 자동으로 심기도록 보장]
+  initMockAnswers();
+  
   return safeParse<Answer[]>(localStorage.getItem(KEYS.ANSWERS)) ?? [];
 }
 
@@ -63,6 +67,7 @@ export function initMockAnswers(): void {
   const parsed = safeParse<Answer[]>(localStorage.getItem(KEYS.ANSWERS));
   if (parsed) {
     // 구버전 데이터(answerType 없음)면 재시딩
+    // [빌드 에러 해결: parsed는 배열이므로 첫 번째 아이템인 parsed[0].answerType의 유무를 체크하도록 정상 수정]
     if (parsed.length > 0 && !parsed[0].answerType) {
       localStorage.removeItem(KEYS.ANSWERS);
     } else {

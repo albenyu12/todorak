@@ -30,9 +30,12 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantStyles: Record<ButtonVariant, string> = {
-  primary: "bg-indigo-600 text-white hover:bg-indigo-700",
-  secondary: "border border-gray-300 text-gray-700 hover:bg-gray-50",
-  ghost: "text-gray-500 hover:text-gray-900 hover:bg-gray-100",
+  primary:
+    "bg-indigo-600 text-white hover:bg-indigo-700 active:bg-indigo-800",
+  secondary:
+    "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 active:bg-gray-100",
+  ghost:
+    "text-gray-500 hover:text-gray-900 hover:bg-gray-100 active:bg-gray-200",
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
@@ -53,7 +56,8 @@ export default function Button({
     <button
       className={[
         "inline-flex items-center justify-center rounded-lg font-semibold transition-colors min-h-[44px]",
-        "disabled:opacity-40 disabled:cursor-not-allowed",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2",
+        "disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none",
         variantStyles[variant],
         sizeStyles[size],
         fullWidth ? "w-full" : "",
