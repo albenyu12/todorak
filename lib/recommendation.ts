@@ -78,7 +78,12 @@ export function getRecommendations(
     const myStyle = currentUser.collaborationStyle;
     const studentStyle = student.collaborationStyle;
 
-    if (COLLABORATION_AFFINITY[myStyle] && COLLABORATION_AFFINITY[myStyle][studentStyle] !== undefined) {
+    if (
+      myStyle &&
+      studentStyle &&
+      COLLABORATION_AFFINITY[myStyle] &&
+      COLLABORATION_AFFINITY[myStyle][studentStyle] !== undefined
+    ) {
       const affinityScore = COLLABORATION_AFFINITY[myStyle][studentStyle];
       score += affinityScore;
 
