@@ -1,26 +1,33 @@
 import Link from "next/link";
 import Button from "@/components/ui/button";
 
-// TODO (H): 빈 상태 콘텐츠 개선
-// 입력값: 없음 (항상 동일한 빈 상태 표시)
-// 해야 할 일:
-//   1. 텍스트를 더 따뜻하고 구체적으로 수정 (예: "아직 대화가 없어요. 첫 질문을 건네볼까요?")
-//   2. 아이콘 또는 일러스트 추가 (말풍선, 질문 아이콘 등)
-// 완료 기준: 빈 상태에서도 사용자가 다음 행동을 직관적으로 알 수 있음
-
-// TODO (H): CTA 버튼 액션 개선
-// 입력값: 없음
-// 해야 할 일: "팀원 탐색" 외에 "질문 둘러보기" 등 대안 액션 추가 고려
-// 완료 기준: 사용자가 빈 상태에서 최소 1가지 명확한 행동을 할 수 있음
-
 export default function EmptyAnswerState() {
   return (
-    <div className="flex flex-col items-center justify-center py-16 text-center">
-      {/* TODO (H): 아이콘 또는 일러스트 */}
-      <p className="text-gray-400 mb-1">아직 기록된 대화가 없어요.</p>
-      <p className="text-sm text-gray-300 mb-6">팀원에게 질문을 건네보세요.</p>
+    <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-gray-200 bg-gray-50 px-6 py-14 text-center">
+      <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
+        <svg
+          aria-hidden="true"
+          className="h-8 w-8"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth="1.8"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M8 10h8M8 14h5m8-2c0 4.418-4.03 8-9 8a10.4 10.4 0 0 1-3.57-.62L4 20l1.1-3.3A7.36 7.36 0 0 1 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8Z"
+          />
+        </svg>
+      </div>
+      <p className="mb-1 text-base font-semibold text-gray-800">
+        아직 받은 답변이 없어요
+      </p>
+      <p className="mb-6 text-sm text-gray-500">
+        궁금한 팀원에게 첫 질문을 남기고 답변을 기다려보세요.
+      </p>
       <Link href="/recommendations">
-        <Button variant="primary">팀원 탐색하러 가기</Button>
+        <Button variant="primary">첫 질문 남기러 가기</Button>
       </Link>
     </div>
   );
