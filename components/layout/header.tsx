@@ -55,13 +55,14 @@ function HeaderNav() {
 }
 
 export default function Header() {
+  const pathname = usePathname();
   const [logoHref, setLogoHref] = useState("/");
   const [hasScroll, setHasScroll] = useState(false);
 
   useEffect(() => {
     const user = getCurrentUser();
-    if (user) setLogoHref("/recommendations");
-  }, []);
+    setLogoHref(user ? "/recommendations" : "/");
+  }, [pathname]);
 
   useEffect(() => {
     const handleScroll = () => {

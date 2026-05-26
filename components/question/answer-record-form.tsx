@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Answer } from "@/lib/types";
-import { saveAnswer } from "@/lib/localStorage";
+import { saveAnswer, getCurrentUser } from "@/lib/localStorage";
 import Button from "@/components/ui/button";
 import Textarea from "@/components/ui/textarea";
 
@@ -50,6 +50,7 @@ export default function AnswerRecordForm({
       questionText,
       answerText: answerText.trim(),
       targetStudentId,
+      answererId: getCurrentUser()?.id,
       recordedAt: new Date().toISOString(),
       answerType: "inperson",
     };

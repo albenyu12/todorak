@@ -44,6 +44,7 @@ export interface Answer {
   questionText: string;
   answerText: string;
   targetStudentId: string;
+  answererId?: string;
   recordedAt: string;
   answerType: "inperson" | "online";
 }

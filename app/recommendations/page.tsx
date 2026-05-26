@@ -13,7 +13,7 @@ export default function RecommendationsPage() {
   useEffect(() => {
     const user = getCurrentUser();
     if (user) {
-      const exploredIds = [...new Set(getAnswers().map((a) => a.targetStudentId))];
+      const exploredIds = [...new Set(getAnswers().filter((a) => a.answererId === user.id).map((a) => a.targetStudentId))];
       setRecommendations(getRecommendations(user, MOCK_STUDENTS, exploredIds));
     } else {
       setRecommendations(
