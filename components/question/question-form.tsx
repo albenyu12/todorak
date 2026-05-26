@@ -14,14 +14,6 @@ interface QuestionFormProps {
   mode: "inperson" | "online";
 }
 
-// TODO (H): 추천 질문 선택 ↔ 직접 입력 전환 UX
-// 입력값: selectedQuestion (RecommendedQuestion | null), customText (string)
-// 해야 할 일:
-//   1. 추천 질문 선택 시 customText를 "" 로 초기화
-//   2. customText 입력 시 selectedQuestion을 null로 초기화
-//   3. 둘 다 비어있을 때 제출 시 에러 메시지 표시
-// 완료 기준: 한 번에 하나의 입력만 활성화되고, 빈 상태 제출 방지
-
 export default function QuestionForm({ studentId, mode }: QuestionFormProps) {
   const router = useRouter();
   const [selectedQuestion, setSelectedQuestion] = useState<RecommendedQuestion | null>(null);
@@ -94,7 +86,7 @@ export default function QuestionForm({ studentId, mode }: QuestionFormProps) {
           error={!!error && !finalText}
           onChange={(e) => {
             setCustomText(e.target.value);
-            if (e.target.value) setSelectedQuestion(null);
+            setSelectedQuestion(null);
             setError("");
           }}
         />
