@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { OnboardingFormData, StudentProfile, Role, CollaborationStyle } from "@/lib/types";
 import { validateOnboardingForm } from "@/lib/validators";
-import { saveCurrentUser } from "@/lib/localStorage";
+import { saveCurrentUser, getCurrentUser, initMockAnonymousQuestions } from "@/lib/localStorage";
 
 const ROLE_OPTIONS: Role[] = ["개발자", "디자이너", "PM", "마케터", "데이터분석가"];
 const COLLABORATION_STYLE_OPTIONS: CollaborationStyle[] = ["리더형", "서포터형", "독립형", "협력형"];
@@ -18,6 +18,9 @@ const LOOKING_FOR_OPTIONS: Role[] = ["개발자", "디자이너", "PM", "마케�
 
 export default function ProfileForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isEdit = searchParams.get("edit") === "true";
+
   const [form, setForm] = useState<Partial<OnboardingFormData>>({
     role: "",
     collaborationStyle: "",
@@ -25,7 +28,26 @@ export default function ProfileForm() {
     skills: [],
     lookingFor: [],
   });
+  const [existingId, setExistingId] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (!isEdit) return;
+    const user = getCurrentUser();
+    if (!user) return;
+    setExistingId(user.id);
+    setForm({
+      name: user.name,
+      department: user.department,
+      year: String(user.year),
+      bio: user.bio ?? "",
+      role: user.role,
+      collaborationStyle: user.collaborationStyle ?? "",
+      interests: user.interests,
+      skills: user.skills,
+      lookingFor: user.lookingFor,
+    });
+  }, [isEdit]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -36,7 +58,7 @@ export default function ProfileForm() {
     }
 
     const profile: StudentProfile = {
-      id: `user-${Date.now()}`,
+      id: existingId ?? `user-${Date.now()}`,
       name: form.name!,
       department: form.department!,
       year: parseInt(form.year!),
@@ -50,7 +72,8 @@ export default function ProfileForm() {
     };
 
     saveCurrentUser(profile);
-    router.push("/recommendations");
+    if (!isEdit) initMockAnonymousQuestions(profile.id);
+    router.push(isEdit ? "/profile" : "/recommendations");
   }
 
   function toggleTag(field: "interests" | "skills" | "lookingFor", value: string) {
@@ -165,7 +188,7 @@ export default function ProfileForm() {
       </Field>
 
       <button type="submit" className="btn-primary mt-2">
-        추천 받기
+        {isEdit ? "수정 완료" : "추천 받기"}
       </button>
     </form>
   );

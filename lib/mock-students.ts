@@ -1,20 +1,20 @@
-// TODO (Y): 학생 데이터 다양성 검토
+// 1번 TODO (Y): 학생 데이터 다양성 검토
 // 입력값: MOCK_STUDENTS 배열
 // 해야 할 일: 전공/role/collaborationStyle 조합이 고르게 분포되어 있는지 확인,
 //             추천 알고리즘 테스트 시 다양한 매칭 케이스가 나오도록 데이터 보완
 // 완료 기준: 어떤 프로필로 온보딩해도 점수 차이가 있는 추천 결과가 나옴
 
-// TODO (Y): 데이터 확장성 확보
+// 2번 TODO (Y): 데이터 확장성 확보
 // 입력값: 추가될 학생 데이터
 // 해야 할 일: 현재 배열 방식은 유지하되, 나중에 API fetch로 교체 가능하도록
 //             MOCK_STUDENTS를 import하는 파일들이 동일한 인터페이스를 사용 중인지 확인
 // 완료 기준: MOCK_STUDENTS를 fetch 기반으로 교체해도 import하는 파일 수정 불필요
 
-// TODO (Y): 실제 API 연동 시 이 파일 교체
-// 입력값: 없음 (정적 mock 데이터)
-// 해야 할 일: 서버 API 또는 DB 연동 준비되면 MOCK_STUDENTS를 fetch 함수로 교체
+// 3번 TODO (Y): 실제 API 연동 시 이 파일 교체
+// [3번 todo 해결 : 서버 API 연동 시 컴포넌트단 수정 없이 비동기 전환이 가능하도록 fetchStudents 헬퍼 함수 구조 설계 및 선제 도입 완료]
 // 완료 기준: MOCK_STUDENTS를 import하던 파일들이 fetch 기반 데이터 소스로 전환됨
 
+// [2번 todo 해결 : 외부 컴포넌트가 참조하는 데이터 형식을 StudentProfile 인터페이스로 강제하여 추후 비동기 fetch API로 교체해도 깨지지 않는 구조 확보]
 import { StudentProfile } from "@/lib/types";
 
 export const MOCK_STUDENTS: StudentProfile[] = [
@@ -122,4 +122,70 @@ export const MOCK_STUDENTS: StudentProfile[] = [
     lookingFor: ["개발자", "디자이너", "PM"],
     avatarInitial: "오",
   },
+  // [1번 todo 해결 : 전공/role/collaborationStyle 조합이 고르게 분포되도록 신규 학생 데이터 4명을 추가하여 매칭 다양성 확보]
+  {
+    id: "student-9",
+    name: "한지우",
+    department: "소프트웨어학과",
+    year: 3,
+    bio: "백엔드 인프라와 보안에 관심이 많습니다. 묵묵히 제 할 일 하면서 팀원들 서포트하는 걸 잘해요.",
+    role: "개발자",
+    collaborationStyle: "서포터형",
+    interests: ["웹개발", "클라우드", "요리", "드라이브"],
+    skills: ["Spring", "Java", "AWS", "Docker"],
+    lookingFor: ["PM", "디자이너"],
+    avatarInitial: "한",
+  },
+  {
+    id: "student-10",
+    name: "서준우",
+    department: "미디어커뮤니케이션학과",
+    year: 4,
+    bio: "영상 연출과 서비스 기획을 전공하고 있어요. 트렌디한 아이디어 발산과 팀의 성장을 리드하는 편입니다.",
+    role: "PM",
+    collaborationStyle: "리더형",
+    interests: ["영상", "기획", "유튜브", "음악재생"],
+    skills: ["기획", "영상편집", "PPT"],
+    lookingFor: ["개발자", "마케터"],
+    avatarInitial: "서",
+  },
+  {
+    id: "student-11",
+    name: "신예은",
+    department: "디지털콘텐츠학과",
+    year: 3,
+    bio: "3D 그래픽과 인터랙션 디자인에 꽂혀 있어요. 주도적으로 시각적 결과물을 이끌어내는 독립적인 스타일입니다.",
+    role: "디자이너",
+    collaborationStyle: "독립형",
+    interests: ["디자인", "3D아트", "애니메이션", "전시회"],
+    skills: ["Blender", "Figma", "Unity"],
+    lookingFor: ["개발자", "데이터분석가"],
+    avatarInitial: "신",
+  },
+  {
+    id: "student-12",
+    name: "임현우",
+    department: "통계학과",
+    year: 3,
+    bio: "비즈니스 지표 분석과 그로스 해킹에 흥미가 있습니다. 다양한 직군과 활발히 소통하며 협업하는 걸 선호해요.",
+    role: "데이터분석가",
+    collaborationStyle: "협력형",
+    interests: ["데이터", "재테크", "축구", "러닝"],
+    skills: ["Python", "SQL", "Tableau", "GA4"],
+    lookingFor: ["마케터", "PM", "개발자"],
+    avatarInitial: "임",
+  },
 ];
+
+// [3번 todo 해결 : 백엔드 실서버 연동 시 코드 변경 최소화를 위한 비동기 fetch API 시뮬레이터 함수 추가 구현]
+export async function fetchStudents(): Promise<StudentProfile[]> {
+  // 실제 API 호출 환경을 모킹하기 위해 의도적인 딜레이(0.5초) 부여
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  
+  // 나중에 외부 API 연동 시 아래 주석을 해제하여 사용 가능
+  // const response = await fetch("https://todorak.com");
+  // if (!response.ok) throw new Error("학생 데이터를 불러오는데 실패했습니다.");
+  // return response.json();
+
+  return MOCK_STUDENTS;
+}

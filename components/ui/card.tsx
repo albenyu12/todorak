@@ -14,19 +14,31 @@
 // 해야 할 일: onClick 있을 때 cursor-pointer + active:scale-[0.99] 등 터치 피드백 추가
 // 완료 기준: 모바일에서 카드 탭 시 시각적 피드백이 있음
 
+type CardPadding = "sm" | "md" | "lg";
+
+const paddingStyles: Record<CardPadding, string> = {
+  sm: "p-3",
+  md: "p-4",
+  lg: "p-6",
+};
+
 interface CardProps {
   className?: string;
   children: React.ReactNode;
   onClick?: () => void;
+  padding?: CardPadding;
 }
 
-export default function Card({ className = "", children, onClick }: CardProps) {
+export default function Card({ className = "", children, onClick, padding = "md" }: CardProps) {
   return (
     <div
       onClick={onClick}
       className={[
-        "rounded-xl border border-gray-200 bg-white p-4",
-        onClick ? "cursor-pointer hover:border-indigo-300 hover:shadow-sm transition-all" : "",
+        "rounded-xl border border-gray-200 bg-white shadow-sm",
+        paddingStyles[padding],
+        onClick
+          ? "cursor-pointer hover:border-indigo-300 hover:shadow-md active:scale-[0.99] active:shadow-none transition-all select-none"
+          : "",
         className,
       ]
         .filter(Boolean)

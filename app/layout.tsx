@@ -7,6 +7,7 @@ import ClientInit from "@/components/client-init";
 export const metadata: Metadata = {
   title: "토도락 — 팀빌딩 탐색 서비스",
   description: "Q&A로 팀원을 찾아보세요",
+  viewport: "width=device-width, initial-scale=1, viewport-fit=cover",
 };
 
 export default function RootLayout({
@@ -20,7 +21,7 @@ export default function RootLayout({
         <ClientInit />
         <Header />
         {/* pb-16: BottomNav 높이만큼 하단 여백 확보 (모바일) */}
-        <main className="flex-1 pb-16 md:pb-0">{children}</main>
+        <main className="flex-1 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">{children}</main>
         <BottomNav />
       </body>
     </html>

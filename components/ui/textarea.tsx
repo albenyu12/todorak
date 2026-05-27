@@ -17,17 +17,19 @@ import { TextareaHTMLAttributes } from "react";
 
 interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   error?: boolean;
+  resizable?: boolean;
 }
 
-export default function Textarea({ error = false, className = "", ...props }: TextareaProps) {
+export default function Textarea({ error = false, resizable = false, className = "", ...props }: TextareaProps) {
   return (
     <textarea
       className={[
-        "w-full rounded-lg border px-3 py-2 text-sm outline-none transition-colors resize-none",
-        "focus:ring-2 focus:ring-indigo-100",
+        "w-full rounded-lg border px-3 py-2 text-sm outline-none transition-colors min-h-[120px]",
+        resizable ? "resize-y" : "resize-none",
+        "focus:ring-2 focus:ring-indigo-100 focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-1",
         "disabled:bg-gray-50 disabled:cursor-not-allowed",
         error
-          ? "border-red-400 focus:border-red-400"
+          ? "border-red-400 focus:border-red-400 focus-visible:ring-red-300"
           : "border-gray-300 focus:border-indigo-400",
         className,
       ]

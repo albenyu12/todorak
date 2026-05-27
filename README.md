@@ -1,17 +1,10 @@
 # 토도락
 
-질문으로 시작하는 팀빌딩 탐색 서비스
+> 질문으로 시작하는 팀빌딩 탐색 서비스
 
-## 서비스 소개
+프로필을 작성하면 관심사·역할 기반으로 팀원 후보를 추천받고, 추천 질문을 골라 대면 대화를 유도합니다. 나눈 대화는 익명 Q&A로 기록되어 팀 탐색에 활용됩니다.
 
-프로필을 작성하면 관심사·스킬 기반으로 팀원 후보를 추천받고, 추천 질문을 골라 대면 대화를 유도합니다. 나눈 대화는 익명 Q&A로 기록되어 팀 탐색에 활용됩니다.
-
-## 기술 스택
-
-- Next.js 16 (App Router)
-- TypeScript
-- Tailwind CSS v4
-- localStorage (로그인·DB 없음, mock data 기반)
+---
 
 ## 시작하기
 
@@ -20,55 +13,82 @@ npm install
 npm run dev
 ```
 
-http://localhost:3000 에서 확인
+브라우저에서 http://localhost:3000 접속
+
+---
+
+## 팀원 및 역할 분담
+
+| 이름 | 담당 영역 |
+|------|-----------|
+| 신지원 (J) | 페이지 라우팅, 프로필·학생 컴포넌트, localStorage 설계 |
+| 김용현 (Y) | 타입 설계, mock 데이터, 질문 목록, 추천 알고리즘 |
+| 윤호중 (H) | 질문 폼, 답변 카드·목록 컴포넌트 |
+| 최봄이 (B) | 공통 UI 컴포넌트, 레이아웃, 글로벌 스타일 |
+
+---
+
+## 주요 기능
+
+### 프로필 작성 및 추천
+- 이름·학과·역할·관심사·스킬·협업 스타일 입력
+- 관심사 겹침, 역할 매칭, 협업 스타일 궁합 기반 점수 산출
+- 점수순 추천 목록 제공
+
+### 질문 기반 대화 유도
+- 추천 질문 선택 또는 직접 입력
+- **대면 모드**: 질문을 들고 가서 대화 후 답변 직접 기록
+- **익명 모드**: 상대방 인박스로 질문 전송
+
+### 익명 Q&A 피드
+- 기록된 대화를 익명으로 피드에 노출
+- 카테고리(협업·역할·갈등·작업 방식·관심사·목표) 필터 및 최신순/오래된순 정렬
+- 답변자 이름 비공개 — "익명의 학생"으로만 표시
+
+### 인박스
+- 받은 익명 질문 목록 확인
+- 질문에 답변 작성 시 Q&A 피드에 자동 노출
+
+---
+
+## MVP 제한 사항
+
+| 항목 | 내용 |
+|------|------|
+| 인증 없음 | 로그인·회원가입 없음. 프로필은 브라우저 localStorage에만 저장 |
+| DB 없음 | 모든 데이터는 localStorage 기반. 새 브라우저·시크릿 탭에서는 초기화됨 |
+| 학생 데이터 고정 | 추천 대상은 `lib/mock-students.ts`에 정의된 8명의 mock 데이터 |
+| 실시간 없음 | 익명 질문 전송은 동일 기기 내 localStorage에 저장되는 방식으로 시뮬레이션 |
+| 서버 재시작 시 초기화 | 개발 서버 재시작 시 localStorage 데이터 전체 초기화 (시연 초기화 용도로 활용 가능) |
+
+---
+
+## 기술 스택
+
+- Next.js 16 (App Router)
+- TypeScript
+- Tailwind CSS v4
+- localStorage (mock data 기반)
+
+---
 
 ## 주요 라우트
 
 | 경로 | 설명 |
 |------|------|
-| `/` | 홈 |
-| `/onboarding` | 프로필 작성 |
+| `/` | 랜딩 |
+| `/onboarding` | 프로필 작성·수정 |
 | `/recommendations` | 추천 학생 목록 |
 | `/students/[id]` | 학생 프로필 상세 |
-| `/students/[id]/ask` | 질문 선택 |
-| `/students/[id]/record` | 답변 기록 |
-| `/answers` | 익명 Q&A 목록 |
-| `/answers/[id]` | 답변 상세 |
+| `/students/[id]/ask` | 질문 선택 (대면/익명) |
+| `/students/[id]/record` | 대면 답변 기록 |
+| `/answers` | 익명 Q&A 피드 |
+| `/inbox` | 받은 익명 질문 목록 |
+| `/inbox/[questionId]` | 익명 질문 답변 |
+| `/profile` | 내 프로필 |
 
-## 폴더 구조
-
-```
-app/
-components/
-  ├─ ui/
-  │   ├─ button.tsx
-  │   ├─ card.tsx
-  │   ├─ input.tsx
-  │   ├─ textarea.tsx
-  │   └─ badge.tsx
-  ├─ layout/
-  │   ├─ header.tsx
-  │   └─ bottom-nav.tsx
-  ├─ question/
-  │   ├─ recommended-question-list.tsx
-  │   ├─ question-form.tsx
-  │   └─ answer-record-form.tsx
-  ├─ answer/
-  │   ├─ answer-card.tsx
-  │   ├─ anonymous-answer-list.tsx
-  │   └─ empty-answer-state.tsx
-  ├─ profile/
-  └─ student/
-lib/
-  ├─ types.ts
-  ├─ recommendation.ts
-  ├─ validators.ts
-  ├─ questions.ts
-  ├─ mock-students.ts
-  ├─ mock-answers.ts
-  └─ localStorage.ts
-```
+---
 
 ## 개발 컨벤션
 
-브랜치 전략, 커밋 규칙, 파일 오너십, 핵심 코드 규칙은 [CONVENTIONS.md](./CONVENTIONS.md)를 참고하세요.
+브랜치 전략, 커밋 규칙, 파일 오너십, 익명성 정책은 [CONVENTIONS.md](./CONVENTIONS.md) 참고.
