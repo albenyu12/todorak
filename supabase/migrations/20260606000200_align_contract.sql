@@ -61,6 +61,8 @@ alter table public.inbox_questions
   drop column if exists sender_profile_id,
   add column if not exists is_answered boolean not null default false;
 
+drop policy if exists "MVP anon delete inbox questions" on public.inbox_questions;
+
 do $$
 begin
   if exists (

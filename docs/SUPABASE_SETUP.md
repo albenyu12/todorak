@@ -41,7 +41,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=<ANON_KEY>
 ## Schema
 
 스키마 원본은 `supabase/schema.sql`에 있습니다.
-Supabase CLI 적용용 migration은 `supabase/migrations/20260606000100_initial_schema.sql`입니다.
+Supabase CLI 적용용 migration은 `supabase/migrations/` 아래에 있으며, 파일명 timestamp 순서대로 적용됩니다.
 
 원격 DB 적용:
 
@@ -66,10 +66,15 @@ Dashboard SQL Editor에서 수동 실행해야 할 때는 `supabase/schema.sql` 
 
 - `classes`: select
 - `profiles`: select, insert, update
-- `inbox_questions`: select, insert, update, delete
+- `inbox_questions`: select, insert, update
 - `answers`: select, insert
 
-이 정책은 발표용 MVP에는 단순하고 빠르지만, 사용자가 다른 사람의 데이터를 수정할 수 있는 한계가 있습니다.
+이 정책은 발표용 MVP에는 단순하고 빠르지만, `anon` key만으로 다음 작업이 가능한 한계가 있습니다.
+
+- 다른 사람의 `profiles` row를 update할 수 있습니다.
+- 다른 사람의 `inbox_questions` row를 update할 수 있습니다.
+- 모든 profile의 `contact_methods`를 조회할 수 있습니다.
+
 실서비스로 확장할 때는 Supabase Auth를 추가하고 profile 소유권 기반 RLS로 교체해야 합니다.
 
 ## Manual Test
@@ -110,7 +115,7 @@ select
   '개발자',
   array['웹개발', '팀빌딩'],
   array['React', 'TypeScript'],
-  array['디자이너', 'PM']::public.profile_role[],
+  array['디자이너', 'PM']::text[],
   '[{"type":"email","value":"test@example.com"}]'::jsonb,
   '테'
 from public.classes

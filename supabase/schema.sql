@@ -122,10 +122,6 @@ using (true)
 with check (true);
 
 drop policy if exists "MVP anon delete inbox questions" on public.inbox_questions;
-create policy "MVP anon delete inbox questions"
-on public.inbox_questions for delete
-to anon
-using (true);
 
 drop policy if exists "MVP anon read answers" on public.answers;
 create policy "MVP anon read answers"
