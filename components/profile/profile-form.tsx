@@ -84,6 +84,7 @@ function ProfileFormFields({
       interests: form.interests ?? [],
       skills: form.skills ?? [],
       lookingFor: form.lookingFor ?? [],
+      contactMethods: initialUser?.contactMethods ?? [],
       avatarInitial: form.name?.[0],
     };
 

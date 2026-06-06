@@ -1,6 +1,6 @@
 "use client";
 
-import { StudentProfile, Answer, AnonymousQuestion, Contact, Role } from "@/lib/types";
+import { StudentProfile, Answer, AnonymousQuestion, ContactMethod, Role } from "@/lib/types";
 import { MOCK_ANSWERS } from "@/lib/mock-answers";
 
 function safeParse<T>(raw: string | null): T | null {
@@ -33,23 +33,26 @@ function getRoleArray(value: unknown): Role[] {
   return getStringArray(value).filter((item): item is Role => ROLES.includes(item as Role));
 }
 
-function normalizeContacts(value: unknown): Contact[] {
+function normalizeContactMethods(value: unknown): ContactMethod[] {
   if (!Array.isArray(value)) return [];
 
   return value.flatMap((item) => {
     if (!isRecord(item)) return [];
-    const { method, value: contactValue } = item;
-    if ((method !== "email" && method !== "link") || typeof contactValue !== "string") {
+
+    const contactType = item.type ?? item.method;
+    const contactValue = item.value;
+
+    if ((contactType !== "email" && contactType !== "link") || typeof contactValue !== "string") {
       return [];
     }
-    return [{ method, value: contactValue }];
+    return [{ type: contactType, value: contactValue }];
   });
 }
 
 function normalizeStudentProfile(value: unknown): StudentProfile | null {
   if (!isRecord(value)) return null;
 
-  const { id, name, department, year, bio, role, avatarInitial, contacts, classId } = value;
+  const { id, name, department, year, bio, role, avatarInitial, classId } = value;
   if (
     typeof id !== "string" ||
     typeof name !== "string" ||
@@ -70,7 +73,7 @@ function normalizeStudentProfile(value: unknown): StudentProfile | null {
     interests: getStringArray(value.interests),
     skills: getStringArray(value.skills),
     lookingFor: getRoleArray(value.lookingFor),
-    contacts: normalizeContacts(contacts),
+    contactMethods: normalizeContactMethods(value.contactMethods ?? value.contacts),
     classId: typeof classId === "string" ? classId : undefined,
     avatarInitial: typeof avatarInitial === "string" ? avatarInitial : undefined,
   };

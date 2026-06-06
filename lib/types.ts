@@ -5,10 +5,8 @@ export type Role =
   | "데이터분석가"
   | "PM";
 
-export type ContactMethod = "email" | "link";
-
-export interface Contact {
-  method: ContactMethod;
+export interface ContactMethod {
+  type: "email" | "link";
   value: string;
 }
 
@@ -30,7 +28,7 @@ export interface StudentProfile {
   interests: string[];
   skills: string[];
   lookingFor: Role[];
-  contacts?: Contact[];
+  contactMethods: ContactMethod[];
   classId?: string;
   avatarInitial?: string;
 }
