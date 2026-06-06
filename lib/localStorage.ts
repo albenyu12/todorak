@@ -1,6 +1,6 @@
 "use client";
 
-import { StudentProfile, Answer, AnonymousQuestion } from "@/lib/types";
+import { StudentProfile, Answer, AnonymousQuestion, ContactMethod, Role } from "@/lib/types";
 import { MOCK_ANSWERS } from "@/lib/mock-answers";
 
 function safeParse<T>(raw: string | null): T | null {
@@ -19,6 +19,66 @@ const KEYS = {
   SERVER_START_TIME: "todorak_server_start_time",
 } as const;
 
+const ROLES: Role[] = ["개발자", "디자이너", "마케터", "데이터분석가", "PM"];
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function getStringArray(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+}
+
+function getRoleArray(value: unknown): Role[] {
+  return getStringArray(value).filter((item): item is Role => ROLES.includes(item as Role));
+}
+
+function normalizeContactMethods(value: unknown): ContactMethod[] {
+  if (!Array.isArray(value)) return [];
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) return [];
+
+    const contactType = item.type ?? item.method;
+    const contactValue = item.value;
+
+    if ((contactType !== "email" && contactType !== "link") || typeof contactValue !== "string") {
+      return [];
+    }
+    return [{ type: contactType, value: contactValue }];
+  });
+}
+
+function normalizeStudentProfile(value: unknown): StudentProfile | null {
+  if (!isRecord(value)) return null;
+
+  const { id, name, department, year, bio, role, avatarInitial, classId } = value;
+  if (
+    typeof id !== "string" ||
+    typeof name !== "string" ||
+    typeof department !== "string" ||
+    typeof year !== "number" ||
+    !ROLES.includes(role as Role)
+  ) {
+    return null;
+  }
+
+  return {
+    id,
+    name,
+    department,
+    year,
+    bio: typeof bio === "string" && bio.length > 0 ? bio : undefined,
+    role: role as Role,
+    interests: getStringArray(value.interests),
+    skills: getStringArray(value.skills),
+    lookingFor: getRoleArray(value.lookingFor),
+    contactMethods: normalizeContactMethods(value.contactMethods ?? value.contacts),
+    classId: typeof classId === "string" ? classId : undefined,
+    avatarInitial: typeof avatarInitial === "string" ? avatarInitial : undefined,
+  };
+}
+
 export function resetIfServerRestarted(): void {
   if (typeof window === "undefined") return;
   const current = process.env.NEXT_PUBLIC_SERVER_START_TIME;
@@ -36,7 +96,7 @@ export function saveCurrentUser(profile: StudentProfile): void {
 
 export function getCurrentUser(): StudentProfile | null {
   if (typeof window === "undefined") return null;
-  return safeParse<StudentProfile>(localStorage.getItem(KEYS.CURRENT_USER));
+  return normalizeStudentProfile(safeParse<unknown>(localStorage.getItem(KEYS.CURRENT_USER)));
 }
 
 export function clearCurrentUser(): void {

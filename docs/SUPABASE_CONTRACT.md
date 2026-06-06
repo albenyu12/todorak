@@ -153,7 +153,7 @@ type StudentProfile = {
 정책:
 
 - 기존 `CollaborationStyle`은 Supabase 계약에 포함하지 않는다.
-- 기존 코드에서 `collaborationStyle`을 제거하는 작업은 후속 이슈에서 한다.
+- 기존 코드에서도 `collaborationStyle`을 사용하지 않는다.
 - `classId`는 반드시 포함한다. 모든 profile 조회는 class boundary 안에서 이뤄져야 한다.
 - `contactMethods`는 배열이다. 연락처가 없으면 빈 배열을 저장한다.
 
@@ -481,9 +481,9 @@ GitHub Issue 완료 기준으로 사용할 체크리스트다.
 - [ ] online answer 생성과 inbox answered 처리는 RPC/transaction 우선으로 묶고, helper 사용 시 중복 방지와 실패 복구를 구현한다.
 - [ ] `contact_methods`는 프로필 목록 조회의 기본 select에서 제외한다.
 - [ ] `inbox_questions`는 현재 `profileId` 대상만 조회한다.
-- [ ] `ContactMethod`는 `email`과 `link`만 허용한다.
-- [ ] 인스타그램, 오픈채팅, 개인 웹사이트는 모두 `type: "link"`로 저장한다.
+- [x] `ContactMethod`는 `email`과 `link`만 허용한다.
+- [x] 인스타그램, 오픈채팅, 개인 웹사이트는 모두 `type: "link"`로 저장한다.
 - [ ] 첫 답변은 `answers`에 `answer_type = "first"`로 저장하고 `inbox_questions` row를 만들지 않는다.
-- [ ] `CollaborationStyle`과 `collaborationStyle`은 Supabase 계약 타입에서 제거한다.
+- [x] `CollaborationStyle`과 `collaborationStyle`은 Supabase 계약 타입에서 제거한다.
 - [ ] Auth 없음 한계를 README 또는 발표 자료에 그대로 옮긴다.
 - [ ] demo seed 데이터는 `DEMO_LONGTERM` class에만 넣고 live class와 섞지 않는다.

@@ -1,12 +1,14 @@
 export type Role =
   | "개발자"
   | "디자이너"
-
   | "마케터"
   | "데이터분석가"
   | "PM";
 
-export type CollaborationStyle = "리더형" | "서포터형" | "독립형" | "협력형";
+export interface ContactMethod {
+  type: "email" | "link";
+  value: string;
+}
 
 export type QuestionCategory =
   | "collaboration"
@@ -23,10 +25,11 @@ export interface StudentProfile {
   year: number;
   bio?: string;
   role: Role;
-  collaborationStyle?: CollaborationStyle;
   interests: string[];
   skills: string[];
   lookingFor: Role[];
+  contactMethods: ContactMethod[];
+  classId?: string;
   avatarInitial?: string;
 }
 
@@ -46,7 +49,7 @@ export interface Answer {
   targetStudentId: string;
   answererId?: string;
   recordedAt: string;
-  answerType: "inperson" | "online";
+  answerType: "first" | "inperson" | "online";
 }
 
 export interface AnonymousQuestion {
@@ -69,7 +72,6 @@ export interface OnboardingFormData {
   year: string;
   bio?: string;
   role: Role | "";
-  collaborationStyle: CollaborationStyle | "";
   interests: string[];
   skills: string[];
   lookingFor: Role[];

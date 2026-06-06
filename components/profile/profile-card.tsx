@@ -20,11 +20,6 @@ export default function ProfileCard({ profile }: ProfileCardProps) {
             <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">
               {profile.role}
             </span>
-            {profile.collaborationStyle && (
-              <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
-                {profile.collaborationStyle}
-              </span>
-            )}
           </div>
         </div>
       </div>
