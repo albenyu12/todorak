@@ -130,6 +130,44 @@ delete from public.profiles
 where name = '테스트 사용자';
 ```
 
+## Demo Seed
+
+장기 운영 예시 데이터는 `supabase/seed-demo.sql`에 있습니다.
+이 seed는 `DEMO_LONGTERM` class만 대상으로 하며, 발표 표현은 "수업 초반 탐색이 누적된 예시 데이터"로 통일합니다.
+
+Dashboard SQL Editor에서 수동 실행하거나, 로컬 CLI로 원격 DB에 연결한 뒤 아래처럼 실행합니다.
+
+```bash
+supabase db query --linked --file supabase/seed-demo.sql
+```
+
+재실행하면 `DEMO_LONGTERM` class의 demo profile, inbox question, answer row를 다시 구성합니다.
+`WEBPROGRAMMING_2026` live class 데이터는 건드리지 않습니다.
+
+적용 후 확인:
+
+```sql
+select
+  (select count(*)
+   from public.profiles p
+   join public.classes c on c.id = p.class_id
+   where c.code = 'DEMO_LONGTERM') as demo_profiles,
+  (select count(*)
+   from public.inbox_questions q
+   join public.classes c on c.id = q.class_id
+   where c.code = 'DEMO_LONGTERM') as demo_inbox_questions,
+  (select count(*)
+   from public.answers a
+   join public.classes c on c.id = a.class_id
+   where c.code = 'DEMO_LONGTERM') as demo_answers;
+```
+
+기대 결과:
+
+- `demo_profiles`: 10
+- `demo_inbox_questions`: 7
+- `demo_answers`: 18
+
 ## Handoff
 
 팀원에게 전달할 값:
