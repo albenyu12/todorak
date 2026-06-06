@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Header from "@/components/layout/header";
 import BottomNav from "@/components/layout/bottom-nav";
@@ -7,7 +7,12 @@ import ClientInit from "@/components/client-init";
 export const metadata: Metadata = {
   title: "토도락 — 팀빌딩 탐색 서비스",
   description: "Q&A로 팀원을 찾아보세요",
-  viewport: "width=device-width, initial-scale=1, viewport-fit=cover",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
