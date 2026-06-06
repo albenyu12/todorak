@@ -1,16 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Answer } from "@/lib/types";
 import { getAnswers } from "@/lib/localStorage";
+import { useIsClient } from "@/lib/use-is-client";
 import AnonymousAnswerList from "@/components/answer/anonymous-answer-list";
 
 export default function AnswersPage() {
-  const [answers, setAnswers] = useState<Answer[]>([]);
-
-  useEffect(() => {
-    setAnswers(getAnswers().reverse());
-  }, []);
+  const isClient = useIsClient();
+  const answers = isClient ? [...getAnswers()].reverse() : [];
 
   return (
     <div className="page-container">

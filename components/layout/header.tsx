@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { getCurrentUser } from "@/lib/localStorage";
+import { useIsClient } from "@/lib/use-is-client";
 
 // TODO (B): 레이아웃 / 반응형 개선
 // TODO (B): 활성 링크 스타일 개선
@@ -56,13 +57,9 @@ function HeaderNav() {
 
 export default function Header() {
   const pathname = usePathname();
-  const [logoHref, setLogoHref] = useState("/");
   const [hasScroll, setHasScroll] = useState(false);
-
-  useEffect(() => {
-    const user = getCurrentUser();
-    setLogoHref(user ? "/recommendations" : "/");
-  }, [pathname]);
+  const isClient = useIsClient();
+  const logoHref = pathname && isClient && getCurrentUser() ? "/recommendations" : "/";
 
   useEffect(() => {
     const handleScroll = () => {

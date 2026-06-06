@@ -1,26 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { RecommendationResult } from "@/lib/types";
 import { getCurrentUser, getAnswers } from "@/lib/localStorage";
 import { getRecommendations } from "@/lib/recommendation";
 import { MOCK_STUDENTS } from "@/lib/mock-students";
+import { useIsClient } from "@/lib/use-is-client";
 import StudentList from "@/components/student/student-list";
 
 export default function RecommendationsPage() {
-  const [recommendations, setRecommendations] = useState<RecommendationResult[]>([]);
-
-  useEffect(() => {
-    const user = getCurrentUser();
-    if (user) {
-      const exploredIds = [...new Set(getAnswers().filter((a) => a.answererId === user.id).map((a) => a.targetStudentId))];
-      setRecommendations(getRecommendations(user, MOCK_STUDENTS, exploredIds));
-    } else {
-      setRecommendations(
-        MOCK_STUDENTS.map((s) => ({ student: s, score: 0, matchReasons: [] }))
-      );
-    }
-  }, []);
+  const isClient = useIsClient();
+  const user = isClient ? getCurrentUser() : null;
+  const exploredIds = user
+    ? [...new Set(getAnswers().filter((a) => a.answererId === user.id).map((a) => a.targetStudentId))]
+    : [];
+  const recommendations = user
+    ? getRecommendations(user, MOCK_STUDENTS, exploredIds)
+    : MOCK_STUDENTS.map((s) => ({ student: s, score: 0, matchReasons: [] }));
 
   return (
     <div className="page-container">

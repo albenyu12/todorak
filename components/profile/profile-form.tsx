@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { OnboardingFormData, StudentProfile, Role, CollaborationStyle } from "@/lib/types";
 import { validateOnboardingForm } from "@/lib/validators";
 import { saveCurrentUser, getCurrentUser, initMockAnonymousQuestions } from "@/lib/localStorage";
+import { useIsClient } from "@/lib/use-is-client";
 
 const ROLE_OPTIONS: Role[] = ["개발자", "디자이너", "PM", "마케터", "데이터분석가"];
 const COLLABORATION_STYLE_OPTIONS: CollaborationStyle[] = ["리더형", "서포터형", "독립형", "협력형"];
@@ -15,39 +16,58 @@ const SKILL_OPTIONS = [
   "React", "Node.js", "TypeScript", "Python", "Swift", "Kotlin", "Flutter", "Figma", "Illustrator", "After Effects", "기획", "데이터분석", "SQL",
 ];
 const LOOKING_FOR_OPTIONS: Role[] = ["개발자", "디자이너", "PM", "마케터", "데이터분석가"];
+const EMPTY_FORM: Partial<OnboardingFormData> = {
+  role: "",
+  collaborationStyle: "",
+  interests: [],
+  skills: [],
+  lookingFor: [],
+};
+
+function getInitialForm(user: StudentProfile | null): Partial<OnboardingFormData> {
+  if (!user) return EMPTY_FORM;
+
+  return {
+    name: user.name,
+    department: user.department,
+    year: String(user.year),
+    bio: user.bio ?? "",
+    role: user.role,
+    collaborationStyle: user.collaborationStyle ?? "",
+    interests: user.interests,
+    skills: user.skills,
+    lookingFor: user.lookingFor,
+  };
+}
 
 export default function ProfileForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const isEdit = searchParams.get("edit") === "true";
+  const isClient = useIsClient();
+  const initialUser = isEdit && isClient ? getCurrentUser() : null;
 
-  const [form, setForm] = useState<Partial<OnboardingFormData>>({
-    role: "",
-    collaborationStyle: "",
-    interests: [],
-    skills: [],
-    lookingFor: [],
-  });
-  const [existingId, setExistingId] = useState<string | null>(null);
+  if (isEdit && !isClient) return null;
+
+  return (
+    <ProfileFormFields
+      key={initialUser?.id ?? "new"}
+      isEdit={isEdit}
+      initialUser={initialUser}
+    />
+  );
+}
+
+function ProfileFormFields({
+  isEdit,
+  initialUser,
+}: {
+  isEdit: boolean;
+  initialUser: StudentProfile | null;
+}) {
+  const router = useRouter();
+  const [form, setForm] = useState<Partial<OnboardingFormData>>(() => getInitialForm(initialUser));
+  const [existingId] = useState<string | null>(() => initialUser?.id ?? null);
   const [errors, setErrors] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    if (!isEdit) return;
-    const user = getCurrentUser();
-    if (!user) return;
-    setExistingId(user.id);
-    setForm({
-      name: user.name,
-      department: user.department,
-      year: String(user.year),
-      bio: user.bio ?? "",
-      role: user.role,
-      collaborationStyle: user.collaborationStyle ?? "",
-      interests: user.interests,
-      skills: user.skills,
-      lookingFor: user.lookingFor,
-    });
-  }, [isEdit]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

@@ -3,13 +3,14 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { AnonymousQuestion, Answer } from "@/lib/types";
+import { Answer } from "@/lib/types";
 import {
   getCurrentUser,
   getAnonymousQuestionsFor,
   saveAnswer,
   deleteAnonymousQuestion,
 } from "@/lib/localStorage";
+import { useIsClient } from "@/lib/use-is-client";
 import Button from "@/components/ui/button";
 import Textarea from "@/components/ui/textarea";
 
@@ -18,18 +19,19 @@ const MIN_LENGTH = 10;
 export default function InboxAnswerPage() {
   const { questionId } = useParams<{ questionId: string }>();
   const router = useRouter();
-  const [question, setQuestion] = useState<AnonymousQuestion | null>(null);
   const [answerText, setAnswerText] = useState("");
+  const isClient = useIsClient();
+  const user = isClient ? getCurrentUser() : null;
+  const question = user
+    ? getAnonymousQuestionsFor(user.id).find((q) => q.id === questionId) ?? null
+    : null;
 
   useEffect(() => {
-    const user = getCurrentUser();
-    if (!user) {
+    if (!isClient) return;
+    if (!getCurrentUser()) {
       router.replace("/onboarding");
-      return;
     }
-    const found = getAnonymousQuestionsFor(user.id).find((q) => q.id === questionId) ?? null;
-    setQuestion(found);
-  }, [questionId, router]);
+  }, [isClient, router]);
 
   const isValid = answerText.trim().length >= MIN_LENGTH;
 
@@ -51,6 +53,8 @@ export default function InboxAnswerPage() {
     deleteAnonymousQuestion(question.id);
     router.push("/answers");
   }
+
+  if (!isClient) return null;
 
   if (!question) {
     return (

@@ -1,34 +1,33 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { StudentProfile, Answer, AnonymousQuestion } from "@/lib/types";
 import {
   getCurrentUser,
   getAnswers,
   getAnonymousQuestionsFor,
 } from "@/lib/localStorage";
+import { useIsClient } from "@/lib/use-is-client";
 import AnswerCard from "@/components/answer/answer-card";
 
 export default function ProfilePage() {
   const router = useRouter();
-  const [user, setUser] = useState<StudentProfile | null>(null);
-  const [myAnswers, setMyAnswers] = useState<Answer[]>([]);
-  const [pendingQuestions, setPendingQuestions] = useState<AnonymousQuestion[]>([]);
+  const isClient = useIsClient();
+  const user = isClient ? getCurrentUser() : null;
+  const myAnswers = user
+    ? getAnswers().filter((a) => a.targetStudentId === user.id)
+    : [];
+  const pendingQuestions = user ? getAnonymousQuestionsFor(user.id) : [];
 
   useEffect(() => {
-    const currentUser = getCurrentUser();
-    if (!currentUser) {
+    if (!isClient) return;
+    if (!getCurrentUser()) {
       router.replace("/onboarding");
-      return;
     }
-    setUser(currentUser);
-    setMyAnswers(getAnswers().filter((a) => a.targetStudentId === currentUser.id));
-    setPendingQuestions(getAnonymousQuestionsFor(currentUser.id));
-  }, [router]);
+  }, [isClient, router]);
 
-  if (!user) return null;
+  if (!isClient || !user) return null;
 
   return (
     <div className="page-container">

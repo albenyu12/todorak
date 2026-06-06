@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Answer } from "@/lib/types";
 import { getAnswers } from "@/lib/localStorage";
+import { useIsClient } from "@/lib/use-is-client";
 import AnswerCard from "@/components/answer/answer-card";
 
 interface StudentAnswersProps {
@@ -10,11 +9,10 @@ interface StudentAnswersProps {
 }
 
 export default function StudentAnswers({ studentId }: StudentAnswersProps) {
-  const [answers, setAnswers] = useState<Answer[]>([]);
-
-  useEffect(() => {
-    setAnswers(getAnswers().filter((a) => a.targetStudentId === studentId));
-  }, [studentId]);
+  const isClient = useIsClient();
+  const answers = isClient
+    ? getAnswers().filter((a) => a.targetStudentId === studentId)
+    : [];
 
   if (answers.length === 0) return null;
 

@@ -1,27 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { AnonymousQuestion } from "@/lib/types";
 import { getCurrentUser, getAnonymousQuestionsFor } from "@/lib/localStorage";
+import { useIsClient } from "@/lib/use-is-client";
 
 export default function InboxPage() {
-  const [questions, setQuestions] = useState<AnonymousQuestion[]>([]);
-  const [hasUser, setHasUser] = useState<boolean | null>(null);
+  const isClient = useIsClient();
+  const user = isClient ? getCurrentUser() : null;
+  const questions = user ? [...getAnonymousQuestionsFor(user.id)].reverse() : [];
 
-  useEffect(() => {
-    const user = getCurrentUser();
-    if (!user) {
-      setHasUser(false);
-      return;
-    }
-    setHasUser(true);
-    setQuestions(getAnonymousQuestionsFor(user.id).reverse());
-  }, []);
+  if (!isClient) return null;
 
-  if (hasUser === null) return null;
-
-  if (!hasUser) {
+  if (!user) {
     return (
       <div className="page-container flex flex-col items-center text-center py-16 gap-4">
         <p className="text-gray-500">받은 질문을 보려면 프로필을 먼저 만들어주세요.</p>

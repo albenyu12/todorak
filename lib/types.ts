@@ -36,7 +36,7 @@ export interface Question {
   category: QuestionCategory;
 }
 
-export interface RecommendedQuestion extends Question {}
+export type RecommendedQuestion = Question;
 
 export interface Answer {
   id: string;

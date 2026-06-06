@@ -1,23 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { Answer } from "@/lib/types";
 import { getAnswerById } from "@/lib/localStorage";
 import { MOCK_STUDENTS } from "@/lib/mock-students";
+import { useIsClient } from "@/lib/use-is-client";
 
 export default function AnswerDetailPage() {
   const { answerId } = useParams<{ answerId: string }>();
-  const [answer, setAnswer] = useState<Answer | null>(null);
-
-  useEffect(() => {
-    setAnswer(getAnswerById(answerId));
-  }, [answerId]);
+  const isClient = useIsClient();
+  const answer = isClient ? getAnswerById(answerId) : null;
 
   const student = answer
     ? MOCK_STUDENTS.find((s) => s.id === answer.targetStudentId)
     : null;
+
+  if (!isClient) return null;
 
   if (!answer) {
     return (
