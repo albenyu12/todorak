@@ -23,11 +23,6 @@ export default function StudentCard({ student, matchReasons }: StudentCardProps)
               <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-xs text-indigo-600">
                 {student.role}
               </span>
-              {student.collaborationStyle && (
-                <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs text-amber-600">
-                  {student.collaborationStyle}
-                </span>
-              )}
             </div>
             {student.bio && (
               <p className="mt-1 text-sm text-gray-600 line-clamp-2">{student.bio}</p>

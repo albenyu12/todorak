@@ -2,13 +2,12 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { OnboardingFormData, StudentProfile, Role, CollaborationStyle } from "@/lib/types";
+import { OnboardingFormData, StudentProfile, Role } from "@/lib/types";
 import { validateOnboardingForm } from "@/lib/validators";
 import { saveCurrentUser, getCurrentUser, initMockAnonymousQuestions } from "@/lib/localStorage";
 import { useIsClient } from "@/lib/use-is-client";
 
 const ROLE_OPTIONS: Role[] = ["개발자", "디자이너", "PM", "마케터", "데이터분석가"];
-const COLLABORATION_STYLE_OPTIONS: CollaborationStyle[] = ["리더형", "서포터형", "독립형", "협력형"];
 const INTEREST_OPTIONS = [
   "웹개발", "모바일", "AI", "데이터", "디자인", "마케팅", "스타트업", "게임개발", "오픈소스", "브랜딩", "기획", "독서", "운동",
 ];
@@ -18,7 +17,6 @@ const SKILL_OPTIONS = [
 const LOOKING_FOR_OPTIONS: Role[] = ["개발자", "디자이너", "PM", "마케터", "데이터분석가"];
 const EMPTY_FORM: Partial<OnboardingFormData> = {
   role: "",
-  collaborationStyle: "",
   interests: [],
   skills: [],
   lookingFor: [],
@@ -33,7 +31,6 @@ function getInitialForm(user: StudentProfile | null): Partial<OnboardingFormData
     year: String(user.year),
     bio: user.bio ?? "",
     role: user.role,
-    collaborationStyle: user.collaborationStyle ?? "",
     interests: user.interests,
     skills: user.skills,
     lookingFor: user.lookingFor,
@@ -84,7 +81,6 @@ function ProfileFormFields({
       year: parseInt(form.year!),
       bio: form.bio || undefined,
       role: form.role as Role,
-      collaborationStyle: form.collaborationStyle ? form.collaborationStyle as CollaborationStyle : undefined,
       interests: form.interests ?? [],
       skills: form.skills ?? [],
       lookingFor: form.lookingFor ?? [],
@@ -161,25 +157,6 @@ function ProfileFormFields({
           selected={form.skills ?? []}
           onToggle={(v) => toggleTag("skills", v)}
         />
-      </Field>
-
-      <Field label="협업 스타일" error={errors.collaborationStyle}>
-        <div className="flex flex-wrap gap-2">
-          {COLLABORATION_STYLE_OPTIONS.map((opt) => (
-            <button
-              key={opt}
-              type="button"
-              onClick={() => { setForm((p) => ({ ...p, collaborationStyle: opt })); setErrors((p) => ({ ...p, collaborationStyle: "" })); }}
-              className={`rounded-full px-3 py-1 text-sm transition-colors ${
-                form.collaborationStyle === opt
-                  ? "border border-indigo-500 bg-indigo-50 text-indigo-600 font-medium"
-                  : "border border-gray-300 text-gray-600 hover:border-indigo-300"
-              }`}
-            >
-              {opt}
-            </button>
-          ))}
-        </div>
       </Field>
 
       <Field label="관심사" error={errors.interests}>

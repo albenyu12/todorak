@@ -24,7 +24,8 @@ const CATEGORY_LABELS: Record<QuestionCategory, string> = {
   goal: "목표",
 };
 
-const ANSWER_TYPE_LABELS: Record<"inperson" | "online", string> = {
+const ANSWER_TYPE_LABELS: Record<Answer["answerType"], string> = {
+  first: "첫 답변",
   inperson: "대면",
   online: "온라인",
 };
