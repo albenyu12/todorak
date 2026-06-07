@@ -74,10 +74,10 @@ export async function createAnswer(
       class_id: classId,
       target_profile_id: data.targetProfileId,
       recorder_profile_id: data.recorderProfileId,
-      inbox_question_id: data.inbox_question_id,
-      question_template_id: data.question_template_id,
-      question_text: data.question_text,
-      answer_text: data.answer_text,
+      inbox_question_id: data.inboxQuestionId,
+      question_template_id: data.questionTemplateId,
+      question_text: data.questionText,
+      answer_text: data.answerText,
       answer_type: data.answerType,
     })
     .select()

@@ -87,7 +87,7 @@ export type ProfileRow = {
   interests: string[];
   skills: string[];
   looking_for: string[];
-  contact_methods: ContactMethod[];
+  contact_methods?: ContactMethod[];
   avatar_initial: string | null;
   created_at: string;
   updated_at: string;
