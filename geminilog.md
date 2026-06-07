@@ -11,3 +11,4 @@
 | 2026-06-07 12:30 | 역할 다중 선택 기능 전수 점검 및 검증 UI 수정 | components/profile/profile-form.tsx, lib/questions.ts, lib/recommendation.ts | 온보딩 폼의 '역할' 선택을 다중 선택으로 완벽 전환, 미선택 시 에러 메시지 노출 수정, 질문 추천 로직 등의 role 참조를 roles 배열 참조로 수정 | 없음 | `replace` | 에러 메시지 미출력 문제 해결 및 시스템 전반의 Role 배열화 완료 | 없음 |
 | 2026-06-07 13:00 | 추천 사유 문구 수정 | lib/recommendation.ts | 추천 사유 중 '찾고 있는 역할 보유'를 '내가 찾고 있는 역할 보유'로 더 명확하게 수정 | 없음 | `replace` | 사용자 피드백 반영 및 UI 문구 개선 완료 | 없음 |
 | 2026-06-07 13:30 | 선택 버튼 체크 표시 제거 | components/profile/profile-form.tsx | TagPicker에서 선택된 항목 앞에 붙는 '✓' 표시를 제거하여 깔끔한 UI 구현 | 없음 | `replace` | UI 디자인 가이드 반영 및 가독성 개선 완료 | 없음 |
+| 2026-06-07 14:00 | Mock Data 빌드 에러 수정 | lib/mock-students.ts | 모든 학생 데이터의 'role' 속성을 'roles' 배열로 변경하여 타입 오류 해결 및 파일 구조 정리 | 없음 | `write_file` | npm run build 실패 문제 해결 및 타입 안정성 확보 | 없음 |

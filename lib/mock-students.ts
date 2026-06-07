@@ -37,7 +37,7 @@ export const MOCK_STUDENTS: StudentProfile[] = [
     department: "산업디자인학과",
     year: 2,
     bio: "UI/UX 디자인을 배우고 있어요. 사용자 중심 디자인에 관심이 많고 개발자와 협업 경험을 쌓고 싶어요.",
-    role: "디자이너",
+    roles: ["디자이너"],
     interests: ["디자인", "사진", "전시회", "카페투어"],
     skills: ["Figma", "Illustrator", "Photoshop"],
     lookingFor: ["개발자", "마케터"],
@@ -50,7 +50,7 @@ export const MOCK_STUDENTS: StudentProfile[] = [
     department: "경영학과",
     year: 4,
     bio: "스타트업 창업을 준비 중입니다. 기획과 마케팅을 좋아하고 팀 리딩 경험이 있어요.",
-    role: "PM",
+    roles: ["PM"],
     interests: ["스타트업", "마케팅", "독서", "운동"],
     skills: ["기획", "데이터분석", "Excel"],
     lookingFor: ["개발자", "디자이너"],
@@ -63,7 +63,7 @@ export const MOCK_STUDENTS: StudentProfile[] = [
     department: "데이터사이언스학과",
     year: 3,
     bio: "머신러닝과 데이터 분석을 공부하고 있어요. 실제 문제를 데이터로 풀어보고 싶어요.",
-    role: "데이터분석가",
+    roles: ["데이터분석가"],
     interests: ["AI", "데이터", "수학", "체스"],
     skills: ["Python", "R", "SQL", "PyTorch"],
     lookingFor: ["PM", "개발자"],
@@ -76,7 +76,7 @@ export const MOCK_STUDENTS: StudentProfile[] = [
     department: "시각디자인학과",
     year: 2,
     bio: "브랜딩과 그래픽 디자인을 공부 중이에요. 감각적인 디자인으로 팀에 기여하고 싶어요.",
-    role: "디자이너",
+    roles: ["디자이너"],
     interests: ["브랜딩", "타이포그래피", "영화", "음악"],
     skills: ["Figma", "After Effects", "Premiere"],
     lookingFor: ["개발자", "PM"],
@@ -102,7 +102,7 @@ export const MOCK_STUDENTS: StudentProfile[] = [
     department: "경영학과",
     year: 3,
     bio: "SNS 마케팅과 콘텐츠 기획을 좋아해요. 브랜드 스토리텔링으로 팀 프로젝트를 알리고 싶어요.",
-    role: "마케터",
+    roles: ["마케터"],
     interests: ["마케팅", "콘텐츠", "트렌드", "여행"],
     skills: ["콘텐츠기획", "SNS운영", "카피라이팅"],
     lookingFor: ["개발자", "디자이너"],
@@ -115,14 +115,13 @@ export const MOCK_STUDENTS: StudentProfile[] = [
     department: "산업공학과",
     year: 4,
     bio: "팀 프로세스 최적화와 일정 관리에 강점이 있어요. 모두가 편하게 일할 수 있는 환경을 만드는 걸 좋아합니다.",
-    role: "PM",
+    roles: ["PM"],
     interests: ["프로젝트관리", "생산성", "독서", "보드게임"],
     skills: ["Notion", "Jira", "일정관리", "회의진행"],
     lookingFor: ["개발자", "디자이너", "PM"],
     contactMethods: [],
     avatarInitial: "오",
   },
-  // [1번 todo 해결 : 전공/role 조합이 고르게 분포되도록 신규 학생 데이터 4명을 추가하여 매칭 다양성 확보]
   {
     id: "student-9",
     name: "한지우",
@@ -142,7 +141,7 @@ export const MOCK_STUDENTS: StudentProfile[] = [
     department: "미디어커뮤니케이션학과",
     year: 4,
     bio: "영상 연출과 서비스 기획을 전공하고 있어요. 트렌디한 아이디어 발산과 팀의 성장을 리드하는 편입니다.",
-    role: "PM",
+    roles: ["PM"],
     interests: ["영상", "기획", "유튜브", "음악재생"],
     skills: ["기획", "영상편집", "PPT"],
     lookingFor: ["개발자", "마케터"],
@@ -155,7 +154,7 @@ export const MOCK_STUDENTS: StudentProfile[] = [
     department: "디지털콘텐츠학과",
     year: 3,
     bio: "3D 그래픽과 인터랙션 디자인에 꽂혀 있어요. 주도적으로 시각적 결과물을 이끌어내는 독립적인 스타일입니다.",
-    role: "디자이너",
+    roles: ["디자이너"],
     interests: ["디자인", "3D아트", "애니메이션", "전시회"],
     skills: ["Blender", "Figma", "Unity"],
     lookingFor: ["개발자", "데이터분석가"],
@@ -168,7 +167,7 @@ export const MOCK_STUDENTS: StudentProfile[] = [
     department: "통계학과",
     year: 3,
     bio: "비즈니스 지표 분석과 그로스 해킹에 흥미가 있습니다. 다양한 직군과 활발히 소통하며 협업하는 걸 선호해요.",
-    role: "데이터분석가",
+    roles: ["데이터분석가"],
     interests: ["데이터", "재테크", "축구", "러닝"],
     skills: ["Python", "SQL", "Tableau", "GA4"],
     lookingFor: ["마케터", "PM", "개발자"],
@@ -177,15 +176,7 @@ export const MOCK_STUDENTS: StudentProfile[] = [
   },
 ];
 
-// [3번 todo 해결 : 백엔드 실서버 연동 시 코드 변경 최소화를 위한 비동기 fetch API 시뮬레이터 함수 추가 구현]
 export async function fetchStudents(): Promise<StudentProfile[]> {
-  // 실제 API 호출 환경을 모킹하기 위해 의도적인 딜레이(0.5초) 부여
   await new Promise((resolve) => setTimeout(resolve, 500));
-  
-  // 나중에 외부 API 연동 시 아래 주석을 해제하여 사용 가능
-  // const response = await fetch("https://todorak.com");
-  // if (!response.ok) throw new Error("학생 데이터를 불러오는데 실패했습니다.");
-  // return response.json();
-
   return MOCK_STUDENTS;
 }
