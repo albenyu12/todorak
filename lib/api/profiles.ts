@@ -1,5 +1,5 @@
 import { supabase } from "../supabase/client";
-import { StudentProfile, ProfileRow, Role } from "./types";
+import { StudentProfile, ProfileRow, Role, ApiResponse } from "./types";
 import { getStoredProfileId } from "../client-session";
 
 function mapProfile(data: ProfileRow): StudentProfile {
@@ -24,8 +24,8 @@ function mapProfile(data: ProfileRow): StudentProfile {
 export async function createProfile(
   classId: string,
   data: Omit<StudentProfile, "id" | "classId" | "createdAt" | "updatedAt">
-): Promise<StudentProfile | null> {
-  if (!supabase) return null;
+): Promise<ApiResponse<StudentProfile>> {
+  if (!supabase) return { data: null, error: { message: "Supabase client not initialized" } };
 
   const { data: created, error } = await supabase
     .from("profiles")
@@ -46,24 +46,22 @@ export async function createProfile(
     .single();
 
   if (error || !created) {
-    console.error("Error creating profile:", error);
-    return null;
+    return { data: null, error: { message: error?.message || "Error creating profile" } };
   }
 
-  return mapProfile(created);
+  return { data: mapProfile(created), error: null };
 }
 
 export async function updateProfile(
   profileId: string,
   data: Partial<Omit<StudentProfile, "id" | "classId" | "createdAt" | "updatedAt">>
-): Promise<StudentProfile | null> {
-  if (!supabase) return null;
+): Promise<ApiResponse<StudentProfile>> {
+  if (!supabase) return { data: null, error: { message: "Supabase client not initialized" } };
 
   // Security check: only allow updating own profile
   const currentProfileId = getStoredProfileId();
   if (profileId !== currentProfileId) {
-    console.error("Permission denied: Cannot update another user's profile");
-    return null;
+    return { data: null, error: { message: "Permission denied: Cannot update another user's profile" } };
   }
 
   const updateData: Record<string, unknown> = {};
@@ -88,11 +86,10 @@ export async function updateProfile(
     .single();
 
   if (error || !updated) {
-    console.error("Error updating profile:", error);
-    return null;
+    return { data: null, error: { message: error?.message || "Error updating profile" } };
   }
 
-  return mapProfile(updated);
+  return { data: mapProfile(updated), error: null };
 }
 
 export async function getProfilesByClass(classId: string): Promise<StudentProfile[]> {
@@ -111,8 +108,8 @@ export async function getProfilesByClass(classId: string): Promise<StudentProfil
   return data.map(mapProfile);
 }
 
-export async function getProfileById(profileId: string, classId: string): Promise<StudentProfile | null> {
-  if (!supabase) return null;
+export async function getProfileById(profileId: string, classId: string): Promise<ApiResponse<StudentProfile>> {
+  if (!supabase) return { data: null, error: { message: "Supabase client not initialized" } };
 
   const { data, error } = await supabase
     .from("profiles")
@@ -122,9 +119,8 @@ export async function getProfileById(profileId: string, classId: string): Promis
     .single();
 
   if (error || !data) {
-    console.error("Error fetching profile by id:", error);
-    return null;
+    return { data: null, error: { message: error?.message || "Profile not found" } };
   }
 
-  return mapProfile(data);
+  return { data: mapProfile(data), error: null };
 }

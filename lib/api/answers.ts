@@ -1,5 +1,5 @@
 import { supabase } from "../supabase/client";
-import { Answer, AnswerRow } from "./types";
+import { Answer, AnswerRow, ApiResponse } from "./types";
 import { markInboxQuestionAnswered, getInboxQuestionById } from "./inbox-questions";
 import { getProfileById } from "./profiles";
 
@@ -29,46 +29,79 @@ export async function createAnswer(
     answerText: string;
     answerType: "first" | "inperson" | "online";
   }
-): Promise<Answer | null> {
-  if (!supabase) return null;
+): Promise<ApiResponse<Answer>> {
+  if (!supabase) return { data: null, error: { message: "Supabase client not initialized" } };
 
-  // 1. Data consistency checks
+  // 1. Data consistency and Business logic validation
+  
+  // Rule 1: Type-specific inboxQuestionId validation
+  if (data.answerType === "online") {
+    if (!data.inboxQuestionId) {
+      return { data: null, error: { message: "inboxQuestionId is required for online answers" } };
+    }
+  } else {
+    if (data.inboxQuestionId) {
+      return { data: null, error: { message: `inboxQuestionId must be null for ${data.answerType} answers` } };
+    }
+  }
+
+  // Rule 2: 'first' answer validation
+  if (data.answerType === "first") {
+    if (data.targetProfileId !== data.recorderProfileId) {
+      return { data: null, error: { message: "For 'first' answers, targetProfileId must equal recorderProfileId" } };
+    }
+  }
+
+  // 2. ID Existence and Class membership verification
   
   // Verify targetProfileId belongs to classId
-  const targetProfile = await getProfileById(data.targetProfileId, classId);
-  if (!targetProfile) {
-    console.error("Target profile does not belong to the specified class");
-    return null;
+  const targetProfileRes = await getProfileById(data.targetProfileId, classId);
+  if (targetProfileRes.error || !targetProfileRes.data) {
+    return { data: null, error: { message: "Target profile does not belong to the specified class or not found" } };
   }
 
   // Verify recorderProfileId belongs to classId if provided
   if (data.recorderProfileId) {
-    const recorderProfile = await getProfileById(data.recorderProfileId, classId);
-    if (!recorderProfile) {
-      console.error("Recorder profile does not belong to the specified class");
-      return null;
+    const recorderProfileRes = await getProfileById(data.recorderProfileId, classId);
+    if (recorderProfileRes.error || !recorderProfileRes.data) {
+      return { data: null, error: { message: "Recorder profile does not belong to the specified class or not found" } };
     }
   }
 
-  // Verify inboxQuestionId consistency if provided
+  // Verify inboxQuestionId consistency and status if provided
   if (data.inboxQuestionId) {
-    const inboxQuestion = await getInboxQuestionById(data.inboxQuestionId, classId);
-    if (!inboxQuestion) {
-      console.error("Inbox question not found or class mismatch");
-      return null;
+    const inboxQuestionRes = await getInboxQuestionById(data.inboxQuestionId, classId);
+    if (inboxQuestionRes.error || !inboxQuestionRes.data) {
+      return { data: null, error: { message: "Inbox question not found or class mismatch" } };
     }
+    const inboxQuestion = inboxQuestionRes.data;
     if (inboxQuestion.targetProfileId !== data.targetProfileId) {
-      console.error("Inbox question target profile mismatch");
-      return null;
+      return { data: null, error: { message: "Inbox question target profile mismatch" } };
     }
     if (inboxQuestion.isAnswered) {
-      console.error("Inbox question is already answered");
-      return null;
+      return { data: null, error: { message: "Inbox question is already answered" } };
     }
   }
 
-  // 2. Create the answer
-  const { data: created, error } = await supabase
+  // 3. Execution (Create Answer and Update Status)
+  
+  // For online answers, we try to mark as answered FIRST to prevent duplicate answers
+  // This is a partial protection against race conditions without full RPC/transactions
+  if (data.answerType === "online" && data.inboxQuestionId) {
+    const markRes = await markInboxQuestionAnswered(data.inboxQuestionId, classId, data.targetProfileId);
+    if (markRes.error) {
+      return { 
+        data: null, 
+        error: { 
+          message: `Failed to mark question as answered: ${markRes.error.message}`,
+          code: "PRE_STATUS_UPDATE_FAILED"
+        } 
+      };
+    }
+  }
+
+  // Create the answer record
+  const { data: created, error: insertError } = await supabase
     .from("answers")
     .insert({
       class_id: classId,
@@ -83,22 +116,13 @@ export async function createAnswer(
     .select()
     .single();
 
-  if (error || !created) {
-    console.error("Error creating answer:", error);
-    return null;
+  if (insertError || !created) {
+    // Note: If this fails for an online answer, the question is now marked as answered but no answer exists.
+    // In a production app, we would use an RPC to handle this transactionally.
+    return { data: null, error: { message: insertError?.message || "Error creating answer" } };
   }
 
-  // 3. If it's an online answer, mark the inbox question as answered
-  if (data.answerType === "online" && data.inboxQuestionId) {
-    try {
-      await markInboxQuestionAnswered(data.inboxQuestionId, classId, data.targetProfileId);
-    } catch (e) {
-      console.error("Failed to mark inbox question as answered, but answer was created:", e);
-      // In a real production app, we might want more robust error handling/rollback here
-    }
-  }
-
-  return mapAnswer(created);
+  return { data: mapAnswer(created), error: null };
 }
 
 export async function getAnswersByClass(classId: string): Promise<Answer[]> {
@@ -118,8 +142,8 @@ export async function getAnswersByClass(classId: string): Promise<Answer[]> {
   return data.map(mapAnswer);
 }
 
-export async function getAnswerById(answerId: string, classId: string): Promise<Answer | null> {
-  if (!supabase) return null;
+export async function getAnswerById(answerId: string, classId: string): Promise<ApiResponse<Answer>> {
+  if (!supabase) return { data: null, error: { message: "Supabase client not initialized" } };
 
   const { data, error } = await supabase
     .from("answers")
@@ -129,11 +153,10 @@ export async function getAnswerById(answerId: string, classId: string): Promise<
     .single();
 
   if (error || !data) {
-    console.error("Error fetching answer by id:", error);
-    return null;
+    return { data: null, error: { message: error?.message || "Answer not found" } };
   }
 
-  return mapAnswer(data);
+  return { data: mapAnswer(data), error: null };
 }
 
 export async function getAnswersForProfile(profileId: string, classId: string): Promise<Answer[]> {

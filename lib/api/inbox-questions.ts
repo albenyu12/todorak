@@ -1,5 +1,5 @@
 import { supabase } from "../supabase/client";
-import { InboxQuestion, InboxQuestionRow } from "./types";
+import { InboxQuestion, InboxQuestionRow, ApiResponse } from "./types";
 import { getStoredProfileId } from "../client-session";
 import { getProfileById } from "./profiles";
 
@@ -23,14 +23,13 @@ export async function createInboxQuestion(
     questionTemplateId: string | null;
     questionText: string;
   }
-): Promise<InboxQuestion | null> {
-  if (!supabase) return null;
+): Promise<ApiResponse<InboxQuestion>> {
+  if (!supabase) return { data: null, error: { message: "Supabase client not initialized" } };
 
   // Verify targetProfileId belongs to classId
-  const targetProfile = await getProfileById(data.targetProfileId, classId);
-  if (!targetProfile) {
-    console.error("Target profile does not belong to the specified class");
-    return null;
+  const profileRes = await getProfileById(data.targetProfileId, classId);
+  if (profileRes.error || !profileRes.data) {
+    return { data: null, error: { message: "Target profile does not belong to the specified class or not found" } };
   }
 
   const { data: created, error } = await supabase
@@ -46,11 +45,10 @@ export async function createInboxQuestion(
     .single();
 
   if (error || !created) {
-    console.error("Error creating inbox question:", error);
-    return null;
+    return { data: null, error: { message: error?.message || "Error creating inbox question" } };
   }
 
-  return mapInboxQuestion(created);
+  return { data: mapInboxQuestion(created), error: null };
 }
 
 export async function getInboxQuestions(profileId: string, classId: string): Promise<InboxQuestion[]> {
@@ -79,8 +77,8 @@ export async function getInboxQuestions(profileId: string, classId: string): Pro
   return data.map(mapInboxQuestion);
 }
 
-export async function getInboxQuestionById(questionId: string, classId: string): Promise<InboxQuestion | null> {
-  if (!supabase) return null;
+export async function getInboxQuestionById(questionId: string, classId: string): Promise<ApiResponse<InboxQuestion>> {
+  if (!supabase) return { data: null, error: { message: "Supabase client not initialized" } };
 
   const { data, error } = await supabase
     .from("inbox_questions")
@@ -90,19 +88,18 @@ export async function getInboxQuestionById(questionId: string, classId: string):
     .single();
 
   if (error || !data) {
-    console.error("Error fetching inbox question by id:", error);
-    return null;
+    return { data: null, error: { message: error?.message || "Inbox question not found" } };
   }
 
-  return mapInboxQuestion(data);
+  return { data: mapInboxQuestion(data), error: null };
 }
 
 export async function markInboxQuestionAnswered(
   questionId: string,
   classId: string,
   targetProfileId: string
-): Promise<InboxQuestion | null> {
-  if (!supabase) return null;
+): Promise<ApiResponse<InboxQuestion>> {
+  if (!supabase) return { data: null, error: { message: "Supabase client not initialized" } };
 
   const { data: updated, error } = await supabase
     .from("inbox_questions")
@@ -118,9 +115,14 @@ export async function markInboxQuestionAnswered(
     .single();
 
   if (error || !updated) {
-    console.error("Error marking inbox question as answered (not found, already answered, or class/profile mismatch):", error);
-    return null;
+    return { 
+      data: null, 
+      error: { 
+        message: error ? error.message : "Error marking inbox question as answered (already answered or mismatch)",
+        code: "UPDATE_FAILED"
+      } 
+    };
   }
 
-  return mapInboxQuestion(updated);
+  return { data: mapInboxQuestion(updated), error: null };
 }

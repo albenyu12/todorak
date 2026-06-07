@@ -63,10 +63,9 @@ export type ApiError = {
   status?: number;
 };
 
-export type ApiResponse<T> = {
-  data: T | null;
-  error: ApiError | null;
-};
+export type ApiResponse<T> = 
+  | { data: T; error: null }
+  | { data: null; error: ApiError };
 
 // Database Row Types (Snake Case)
 export type ClassRow = {
