@@ -360,7 +360,7 @@ updateProfile(
 
 getProfilesByClass(classId: string): Promise<StudentProfile[]>;
 
-getProfileById(profileId: string): Promise<StudentProfile | null>;
+getProfileById(profileId: string, classId: string): Promise<StudentProfile | null>;
 ```
 
 ### Inbox Question
@@ -375,11 +375,15 @@ createInboxQuestion(
   }
 ): Promise<InboxQuestion>;
 
-getInboxQuestions(profileId: string): Promise<InboxQuestion[]>;
+getInboxQuestions(profileId: string, classId: string): Promise<InboxQuestion[]>;
 
-getInboxQuestionById(questionId: string): Promise<InboxQuestion | null>;
+getInboxQuestionById(questionId: string, classId: string): Promise<InboxQuestion | null>;
 
-markInboxQuestionAnswered(questionId: string): Promise<InboxQuestion>;
+markInboxQuestionAnswered(
+  questionId: string,
+  classId: string,
+  targetProfileId: string
+): Promise<InboxQuestion>;
 ```
 
 ### Answer
@@ -400,25 +404,28 @@ createAnswer(
 
 getAnswersByClass(classId: string): Promise<Answer[]>;
 
-getAnswerById(answerId: string): Promise<Answer | null>;
+getAnswerById(answerId: string, classId: string): Promise<Answer | null>;
 
-getAnswersForProfile(profileId: string): Promise<Answer[]>;
+getAnswersForProfile(profileId: string, classId: string): Promise<Answer[]>;
 ```
 
 구현 정책:
 
 - `updateProfile`은 전달된 `profileId`가 현재 localStorage의 `todorak:profileId`와 같을 때만 수정한다. 다르면 수정하지 않는다.
 - `createInboxQuestion`은 `targetProfileId`가 같은 `classId`에 속할 때만 생성한다.
-- `createAnswer`는 `targetProfileId`, `recorderProfileId`, `inboxQuestionId`가 전달된 경우 모두 같은 `classId`에 속할 때만 생성한다.
+- `createAnswer`는 `targetProfileId`, `recorderProfileId`가 전달된 경우 모두 같은 `classId`에 속할 때만 생성한다.
+- `createAnswer`에서 `inboxQuestionId`가 전달된 경우, 해당 질문이 같은 `classId`와 `targetProfileId`에 속하고 `isAnswered = false`인 경우에만 생성한다.
 - `createAnswer`가 `answerType = "online"`이고 `inboxQuestionId`가 있으면, 답변 생성과 `markInboxQuestionAnswered` 처리는 RPC 또는 transaction으로 묶는 방식을 우선한다.
-- RPC 또는 transaction을 쓰지 못하고 API helper로 묶는 경우에는 중복 답변 방지와 실패 복구를 helper 안에서 처리한다.
+- RPC 또는 transaction을 쓰지 못하고 API helper로 묶는 경우에는 중복 답변 방지(`is_answered=false` 체크)와 실패 복구를 helper 안에서 처리한다.
 - `getAnswersByClass`는 최신순 정렬을 기본값으로 한다.
 - `getInboxQuestions`는 전달된 `profileId`가 현재 localStorage의 `todorak:profileId`와 같을 때만 조회한다. 다르면 빈 배열을 반환한다.
 - `getInboxQuestions`는 `isAnswered = false`를 우선 보여주고, 필요하면 완료된 질문을 별도 UI에서 보여준다.
-- `getProfileById`, `getInboxQuestionById`, `getAnswerById`, `getAnswersForProfile`처럼 id만 받는 함수도 API 내부에서 현재 localStorage의 `todorak:classId`를 읽고 Supabase query에 `class_id` 조건을 함께 건다.
-- 예: `getAnswerById(answerId)`는 `id = answerId AND class_id = currentClassId`로 조회한다.
+- `getInboxQuestions`는 반드시 `class_id` 필터를 포함해야 한다.
+- `markInboxQuestionAnswered`는 `id`, `class_id`, `target_profile_id`가 모두 일치하고 `is_answered = false`인 경우에만 `true`로 업데이트한다.
+- `getProfileById`, `getInboxQuestionById`, `getAnswerById`, `getAnswersForProfile`처럼 단건/목록 조회 함수는 인자로 받은 `classId`를 Supabase query에 `class_id` 조건으로 함께 건다.
+- 예: `getAnswerById(answerId, classId)`는 `id = answerId AND class_id = classId`로 조회한다.
 - id 기반 단건 조회는 `id`와 `class_id`가 모두 일치할 때만 반환하고, 아니면 `null`을 반환한다.
-- id 기반 목록 조회는 `class_id`가 현재 class와 같은 row만 반환하고, 다른 class row는 반환하지 않는다.
+- id 기반 목록 조회는 `class_id`가 인자로 받은 `classId`와 같은 row만 반환하고, 다른 class row는 반환하지 않는다.
 - API 함수는 Supabase row의 snake_case를 화면 타입의 camelCase로 변환해서 반환한다.
 
 ## No Auth Limitation

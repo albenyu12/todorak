@@ -1,6 +1,7 @@
 import { supabase } from "../supabase/client";
 import { Answer, AnswerRow } from "./types";
-import { markInboxQuestionAnswered } from "./inbox-questions";
+import { markInboxQuestionAnswered, getInboxQuestionById } from "./inbox-questions";
+import { getProfileById } from "./profiles";
 
 function mapAnswer(data: AnswerRow): Answer {
   return {
@@ -31,17 +32,52 @@ export async function createAnswer(
 ): Promise<Answer | null> {
   if (!supabase) return null;
 
-  // 1. Create the answer
+  // 1. Data consistency checks
+  
+  // Verify targetProfileId belongs to classId
+  const targetProfile = await getProfileById(data.targetProfileId, classId);
+  if (!targetProfile) {
+    console.error("Target profile does not belong to the specified class");
+    return null;
+  }
+
+  // Verify recorderProfileId belongs to classId if provided
+  if (data.recorderProfileId) {
+    const recorderProfile = await getProfileById(data.recorderProfileId, classId);
+    if (!recorderProfile) {
+      console.error("Recorder profile does not belong to the specified class");
+      return null;
+    }
+  }
+
+  // Verify inboxQuestionId consistency if provided
+  if (data.inboxQuestionId) {
+    const inboxQuestion = await getInboxQuestionById(data.inboxQuestionId, classId);
+    if (!inboxQuestion) {
+      console.error("Inbox question not found or class mismatch");
+      return null;
+    }
+    if (inboxQuestion.targetProfileId !== data.targetProfileId) {
+      console.error("Inbox question target profile mismatch");
+      return null;
+    }
+    if (inboxQuestion.isAnswered) {
+      console.error("Inbox question is already answered");
+      return null;
+    }
+  }
+
+  // 2. Create the answer
   const { data: created, error } = await supabase
     .from("answers")
     .insert({
       class_id: classId,
       target_profile_id: data.targetProfileId,
       recorder_profile_id: data.recorderProfileId,
-      inbox_question_id: data.inboxQuestionId,
-      question_template_id: data.questionTemplateId,
-      question_text: data.questionText,
-      answer_text: data.answerText,
+      inbox_question_id: data.inbox_question_id,
+      question_template_id: data.question_template_id,
+      question_text: data.question_text,
+      answer_text: data.answer_text,
       answer_type: data.answerType,
     })
     .select()
@@ -52,10 +88,10 @@ export async function createAnswer(
     return null;
   }
 
-  // 2. If it's an online answer, mark the inbox question as answered
+  // 3. If it's an online answer, mark the inbox question as answered
   if (data.answerType === "online" && data.inboxQuestionId) {
     try {
-      await markInboxQuestionAnswered(data.inboxQuestionId);
+      await markInboxQuestionAnswered(data.inboxQuestionId, classId, data.targetProfileId);
     } catch (e) {
       console.error("Failed to mark inbox question as answered, but answer was created:", e);
       // In a real production app, we might want more robust error handling/rollback here

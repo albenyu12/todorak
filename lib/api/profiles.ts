@@ -100,7 +100,7 @@ export async function getProfilesByClass(classId: string): Promise<StudentProfil
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, class_id, name, department, year, bio, role, interests, skills, looking_for, contact_methods, avatar_initial, created_at, updated_at")
+    .select("id, class_id, name, department, year, bio, role, interests, skills, looking_for, avatar_initial, created_at, updated_at")
     .eq("class_id", classId);
 
   if (error || !data) {

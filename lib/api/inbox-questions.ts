@@ -1,6 +1,7 @@
 import { supabase } from "../supabase/client";
 import { InboxQuestion, InboxQuestionRow } from "./types";
 import { getStoredProfileId } from "../client-session";
+import { getProfileById } from "./profiles";
 
 function mapInboxQuestion(data: InboxQuestionRow): InboxQuestion {
   return {
@@ -25,6 +26,13 @@ export async function createInboxQuestion(
 ): Promise<InboxQuestion | null> {
   if (!supabase) return null;
 
+  // Verify targetProfileId belongs to classId
+  const targetProfile = await getProfileById(data.targetProfileId, classId);
+  if (!targetProfile) {
+    console.error("Target profile does not belong to the specified class");
+    return null;
+  }
+
   const { data: created, error } = await supabase
     .from("inbox_questions")
     .insert({
@@ -45,7 +53,7 @@ export async function createInboxQuestion(
   return mapInboxQuestion(created);
 }
 
-export async function getInboxQuestions(profileId: string): Promise<InboxQuestion[]> {
+export async function getInboxQuestions(profileId: string, classId: string): Promise<InboxQuestion[]> {
   if (!supabase) return [];
 
   // Security check: only allow viewing own inbox
@@ -59,6 +67,7 @@ export async function getInboxQuestions(profileId: string): Promise<InboxQuestio
     .from("inbox_questions")
     .select("*")
     .eq("target_profile_id", profileId)
+    .eq("class_id", classId)
     .order("is_answered", { ascending: true })
     .order("created_at", { ascending: false });
 
@@ -88,7 +97,11 @@ export async function getInboxQuestionById(questionId: string, classId: string):
   return mapInboxQuestion(data);
 }
 
-export async function markInboxQuestionAnswered(questionId: string): Promise<InboxQuestion | null> {
+export async function markInboxQuestionAnswered(
+  questionId: string,
+  classId: string,
+  targetProfileId: string
+): Promise<InboxQuestion | null> {
   if (!supabase) return null;
 
   const { data: updated, error } = await supabase
@@ -98,11 +111,14 @@ export async function markInboxQuestionAnswered(questionId: string): Promise<Inb
       answered_at: new Date().toISOString(),
     })
     .eq("id", questionId)
+    .eq("class_id", classId)
+    .eq("target_profile_id", targetProfileId)
+    .eq("is_answered", false)
     .select()
     .single();
 
   if (error || !updated) {
-    console.error("Error marking inbox question as answered:", error);
+    console.error("Error marking inbox question as answered (not found, already answered, or class/profile mismatch):", error);
     return null;
   }
 
