@@ -4,12 +4,6 @@
 //             currentUser.lookingFor.includes(student.role) 방식으로 교체
 // 완료 기준: lookingFor에 "디자이너"가 있고 student.role이 "디자이너"이면 매칭됨
 
-// 2번 TODO (Y): collaborationStyle 궁합 점수 추가
-// 입력값: currentUser.lookingFor, student.role, currentUser.collaborationStyle, student.collaborationStyle
-// 해야 할 일: 궁합 매트릭스 정의 (예: 리더형 + 서포터형 → +20, 리더형 + 리더형 → -5)
-//             COLLABORATION_AFFINITY 객체로 관리
-// 완료 기준: collaborationStyle 조합에 따라 점수가 달라지고 matchReasons에 반영됨
-
 // 3번 TODO (Y): 차이 기반 추천 (보완성 강화)
 // 입력값: currentUser.skills, student.skills
 // 해야 할 일: 겹치는 스킬이 적을수록 보완 가능성이 높다고 판단,
@@ -28,14 +22,6 @@
 // 완료 기준: 같은 프로필로 반복 방문해도 추천 순서가 매번 완전히 동일하지 않음
 
 import { StudentProfile, RecommendationResult } from "@/lib/types";
-
-// 2번 TODO 해결(Y): COLLABORATION_AFFINITY 객체 정의
-const COLLABORATION_AFFINITY: Record<string, Record<string, number>> = {
-  "리더형": { "리더형": -5, "서포터형": 20, "독립형": 20, "협력형": 20 },
-  "서포터형": { "리더형": 20, "서포터형": -5, "독립형": 20, "협력형": 20 },
-  "독립형": { "리더형": 20, "서포터형": 20, "독립형": -5, "협력형": 20 },
-  "협력형": { "리더형": 20, "서포터형": 20, "독립형": 20, "협력형": -5 },
-};
 
 export function getRecommendations(
   currentUser: StudentProfile,
@@ -72,27 +58,6 @@ export function getRecommendations(
     if (studentWantsMe) {
       score += 15;
       matchReasons.push("상대방이 찾는 역할 보유 (+15점)");
-    }
-
-    // 2번 TODO 해결(Y) : COLLABORATION_AFFINITY 객체를 활용한 점수 계산 및 반영 완료
-    const myStyle = currentUser.collaborationStyle;
-    const studentStyle = student.collaborationStyle;
-
-    // [빌드 에러 해결 : myStyle과 studentStyle의 string 타입을 명시적으로 'in' 키워드로 검증하여 인덱싱 타입 제한 통과]
-    if (
-      myStyle && 
-      studentStyle && 
-      myStyle in COLLABORATION_AFFINITY && 
-      studentStyle in COLLABORATION_AFFINITY[myStyle]
-    ) {
-      const affinityScore = COLLABORATION_AFFINITY[myStyle][studentStyle];
-      score += affinityScore;
-
-      if (affinityScore > 0) {
-        matchReasons.push(`협업 스타일 보완 (${studentStyle}) (+${affinityScore}점)`);
-      } else {
-        matchReasons.push(`협업 스타일 중복 (${myStyle}) (${affinityScore}점)`);
-      }
     }
 
     // 3번 TODO 해결(Y): 차이 기반 추천 (보완성 강화)
