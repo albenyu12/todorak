@@ -20,6 +20,7 @@ const EMPTY_FORM: Partial<OnboardingFormData> = {
   interests: [],
   skills: [],
   lookingFor: [],
+  contactMethods: [],
 };
 
 function getInitialForm(user: StudentProfile | null): Partial<OnboardingFormData> {
@@ -34,6 +35,7 @@ function getInitialForm(user: StudentProfile | null): Partial<OnboardingFormData
     interests: user.interests,
     skills: user.skills,
     lookingFor: user.lookingFor,
+    contactMethods: user.contactMethods ?? [],
   };
 }
 
@@ -84,7 +86,7 @@ function ProfileFormFields({
       interests: form.interests ?? [],
       skills: form.skills ?? [],
       lookingFor: form.lookingFor ?? [],
-      contactMethods: initialUser?.contactMethods ?? [],
+      contactMethods: form.contactMethods ?? [],
       avatarInitial: form.name?.[0],
     };
 
@@ -99,6 +101,16 @@ function ProfileFormFields({
     setErrors((prev) => ({ ...prev, [field]: "" }));
     setForm((prev) => ({ ...prev, [field]: updated }));
   }
+
+  const updateContact = (type: "email" | "instagram" | "openchat" | "link", value: string) => {
+    const current = form.contactMethods ?? [];
+    const filtered = current.filter((c) => c.type !== type);
+    const updated = value.trim() ? [...filtered, { type, value: value.trim() }] : filtered;
+    setForm((prev) => ({ ...prev, contactMethods: updated }));
+    if (updated.length > 0) setErrors((prev) => ({ ...prev, contactMethods: "" }));
+  };
+
+  const getContactValue = (type: string) => form.contactMethods?.find((c) => c.type === type)?.value ?? "";
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
@@ -131,6 +143,47 @@ function ProfileFormFields({
             <option key={y} value={String(y)}>{y}학년</option>
           ))}
         </select>
+      </Field>
+
+      <Field label="연락처 (최소 1개 입력)" required error={errors.contactMethods}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-gray-400 w-16 text-center">이메일</span>
+            <input
+              className="input text-sm py-1.5"
+              placeholder="example@email.com"
+              value={getContactValue("email")}
+              onChange={(e) => updateContact("email", e.target.value)}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-gray-400 w-16 text-center">인스타</span>
+            <input
+              className="input text-sm py-1.5"
+              placeholder="@username"
+              value={getContactValue("instagram")}
+              onChange={(e) => updateContact("instagram", e.target.value)}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-gray-400 w-16 text-center">오픈채팅</span>
+            <input
+              className="input text-sm py-1.5"
+              placeholder="오픈채팅 링크"
+              value={getContactValue("openchat")}
+              onChange={(e) => updateContact("openchat", e.target.value)}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-gray-400 w-16 text-center">기타링크</span>
+            <input
+              className="input text-sm py-1.5"
+              placeholder="포트폴리오 등"
+              value={getContactValue("link")}
+              onChange={(e) => updateContact("link", e.target.value)}
+            />
+          </div>
+        </div>
       </Field>
 
       <Field label="역할" required error={errors.role}>

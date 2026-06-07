@@ -6,7 +6,7 @@ export type Role =
   | "PM";
 
 export interface ContactMethod {
-  type: "email" | "link";
+  type: "email" | "instagram" | "openchat" | "link";
   value: string;
 }
 
@@ -75,4 +75,5 @@ export interface OnboardingFormData {
   interests: string[];
   skills: string[];
   lookingFor: Role[];
+  contactMethods: ContactMethod[];
 }

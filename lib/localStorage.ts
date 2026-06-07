@@ -42,10 +42,11 @@ function normalizeContactMethods(value: unknown): ContactMethod[] {
     const contactType = item.type ?? item.method;
     const contactValue = item.value;
 
-    if ((contactType !== "email" && contactType !== "link") || typeof contactValue !== "string") {
+    const allowedTypes = ["email", "instagram", "openchat", "link"];
+    if (!allowedTypes.includes(contactType as string) || typeof contactValue !== "string") {
       return [];
     }
-    return [{ type: contactType, value: contactValue }];
+    return [{ type: contactType as any, value: contactValue }];
   });
 }
 

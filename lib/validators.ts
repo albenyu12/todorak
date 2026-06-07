@@ -25,6 +25,10 @@ const profileFormSchema = z.object({
   interests: z.array(z.string()).min(1, { message: "관심사를 최소 1개 이상 선택해주세요." }),
   skills: z.array(z.string()).min(1, { message: "기술 스택을 최소 1개 이상 선택해주세요." }),
   lookingFor: z.array(z.string()).min(1, { message: "찾는 팀원 조건을 최소 1개 이상 선택해주세요." }),
+  contactMethods: z.array(z.object({
+    type: z.enum(["email", "instagram", "openchat", "link"]),
+    value: z.string().trim().min(1)
+  })).min(1, { message: "최소 1개의 연락처를 입력해주세요." }),
 });
 
 export function validateProfileForm(
@@ -62,6 +66,9 @@ export function validateProfileForm(
   }
   if (isFinalSubmit || data.lookingFor !== undefined) {
     addError("lookingFor", profileFormSchema.shape.lookingFor.safeParse(data.lookingFor ?? []));
+  }
+  if (isFinalSubmit || data.contactMethods !== undefined) {
+    addError("contactMethods", profileFormSchema.shape.contactMethods.safeParse(data.contactMethods ?? []));
   }
 
   return errors;
