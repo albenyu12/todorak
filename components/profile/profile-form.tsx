@@ -56,6 +56,25 @@ export default function ProfileForm() {
   );
 }
 
+function buildProfilePayload(
+  form: Partial<OnboardingFormData>,
+  existingId: string | null
+): StudentProfile {
+  return {
+    id: existingId ?? `user-${Date.now()}`,
+    name: form.name!,
+    department: form.department!,
+    year: parseInt(form.year!),
+    bio: form.bio || undefined,
+    roles: (form.roles as Role[]) ?? [],
+    interests: form.interests ?? [],
+    skills: form.skills ?? [],
+    lookingFor: form.lookingFor ?? [],
+    contactMethods: form.contactMethods ?? [],
+    avatarInitial: form.name?.[0],
+  };
+}
+
 function ProfileFormFields({
   isEdit,
   initialUser,
@@ -76,19 +95,7 @@ function ProfileFormFields({
       return;
     }
 
-    const profile: StudentProfile = {
-      id: existingId ?? `user-${Date.now()}`,
-      name: form.name!,
-      department: form.department!,
-      year: parseInt(form.year!),
-      bio: form.bio || undefined,
-      roles: (form.roles as Role[]) ?? [],
-      interests: form.interests ?? [],
-      skills: form.skills ?? [],
-      lookingFor: form.lookingFor ?? [],
-      contactMethods: form.contactMethods ?? [],
-      avatarInitial: form.name?.[0],
-    };
+    const profile = buildProfilePayload(form, existingId);
 
     saveCurrentUser(profile);
     if (!isEdit) initMockAnonymousQuestions(profile.id);

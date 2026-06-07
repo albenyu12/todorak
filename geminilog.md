@@ -12,3 +12,4 @@
 | 2026-06-07 13:00 | 추천 사유 문구 수정 | lib/recommendation.ts | 추천 사유 중 '찾고 있는 역할 보유'를 '내가 찾고 있는 역할 보유'로 더 명확하게 수정 | 없음 | `replace` | 사용자 피드백 반영 및 UI 문구 개선 완료 | 없음 |
 | 2026-06-07 13:30 | 선택 버튼 체크 표시 제거 | components/profile/profile-form.tsx | TagPicker에서 선택된 항목 앞에 붙는 '✓' 표시를 제거하여 깔끔한 UI 구현 | 없음 | `replace` | UI 디자인 가이드 반영 및 가독성 개선 완료 | 없음 |
 | 2026-06-07 14:00 | Mock Data 빌드 에러 수정 | lib/mock-students.ts | 모든 학생 데이터의 'role' 속성을 'roles' 배열로 변경하여 타입 오류 해결 및 파일 구조 정리 | 없음 | `write_file` | npm run build 실패 문제 해결 및 타입 안정성 확보 | 없음 |
+| 2026-06-07 14:30 | Submit Payload 생성 로직 분리 | components/profile/profile-form.tsx | handleSubmit 내부에 있던 데이터 변환 로직을 buildProfilePayload 함수로 분리하여 데이터 처리 경계 명확화 | 없음 | `replace` | 유지보수성 및 코드 가독성 향상 리팩토링 완료 | 없음 |
