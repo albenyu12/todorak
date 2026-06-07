@@ -340,6 +340,16 @@ question_text = "팀 프로젝트에서 나를 어떤 동료로 소개하고 싶
 getClassByCode(code: string): Promise<Class | null>;
 ```
 
+### API Response
+
+생성, 수정, 단건 조회처럼 실패 사유를 화면에서 구분해야 하는 API는 공통 응답 형태를 사용한다.
+
+```ts
+type ApiResponse<T> =
+  | { data: T; error: null }
+  | { data: null; error: { message: string; code?: string; status?: number } };
+```
+
 ### Profile
 
 ```ts
@@ -349,18 +359,18 @@ createProfile(
     StudentProfile,
     "id" | "classId" | "createdAt" | "updatedAt"
   >
-): Promise<StudentProfile>;
+): Promise<ApiResponse<StudentProfile>>;
 
 updateProfile(
   profileId: string,
   data: Partial<
     Omit<StudentProfile, "id" | "classId" | "createdAt" | "updatedAt">
   >
-): Promise<StudentProfile>;
+): Promise<ApiResponse<StudentProfile>>;
 
 getProfilesByClass(classId: string): Promise<StudentProfile[]>;
 
-getProfileById(profileId: string, classId: string): Promise<StudentProfile | null>;
+getProfileById(profileId: string, classId: string): Promise<ApiResponse<StudentProfile>>;
 ```
 
 ### Inbox Question
@@ -373,17 +383,17 @@ createInboxQuestion(
     questionTemplateId: string | null;
     questionText: string;
   }
-): Promise<InboxQuestion>;
+): Promise<ApiResponse<InboxQuestion>>;
 
 getInboxQuestions(profileId: string, classId: string): Promise<InboxQuestion[]>;
 
-getInboxQuestionById(questionId: string, classId: string): Promise<InboxQuestion | null>;
+getInboxQuestionById(questionId: string, classId: string): Promise<ApiResponse<InboxQuestion>>;
 
 markInboxQuestionAnswered(
   questionId: string,
   classId: string,
   targetProfileId: string
-): Promise<InboxQuestion>;
+): Promise<ApiResponse<InboxQuestion>>;
 ```
 
 ### Answer
@@ -400,11 +410,11 @@ createAnswer(
     answerText: string;
     answerType: "first" | "inperson" | "online";
   }
-): Promise<Answer>;
+): Promise<ApiResponse<Answer>>;
 
 getAnswersByClass(classId: string): Promise<Answer[]>;
 
-getAnswerById(answerId: string, classId: string): Promise<Answer | null>;
+getAnswerById(answerId: string, classId: string): Promise<ApiResponse<Answer>>;
 
 getAnswersForProfile(profileId: string, classId: string): Promise<Answer[]>;
 ```

@@ -18,6 +18,37 @@ function mapAnswer(data: AnswerRow): Answer {
   };
 }
 
+async function rollbackInboxQuestionAnswered(
+  questionId: string,
+  classId: string,
+  targetProfileId: string
+): Promise<ApiResponse<null>> {
+  if (!supabase) return { data: null, error: { message: "Supabase client not initialized" } };
+
+  const { error } = await supabase
+    .from("inbox_questions")
+    .update({
+      is_answered: false,
+      answered_at: null,
+    })
+    .eq("id", questionId)
+    .eq("class_id", classId)
+    .eq("target_profile_id", targetProfileId)
+    .eq("is_answered", true);
+
+  if (error) {
+    return {
+      data: null,
+      error: {
+        message: error.message,
+        code: "ROLLBACK_FAILED",
+      },
+    };
+  }
+
+  return { data: null, error: null };
+}
+
 export async function createAnswer(
   classId: string,
   data: {
@@ -31,6 +62,7 @@ export async function createAnswer(
   }
 ): Promise<ApiResponse<Answer>> {
   if (!supabase) return { data: null, error: { message: "Supabase client not initialized" } };
+  let markedInboxQuestionId: string | null = null;
 
   // 1. Data consistency and Business logic validation
   
@@ -98,6 +130,7 @@ export async function createAnswer(
         } 
       };
     }
+    markedInboxQuestionId = data.inboxQuestionId;
   }
 
   // Create the answer record
@@ -117,9 +150,27 @@ export async function createAnswer(
     .single();
 
   if (insertError || !created) {
-    // Note: If this fails for an online answer, the question is now marked as answered but no answer exists.
-    // In a production app, we would use an RPC to handle this transactionally.
-    return { data: null, error: { message: insertError?.message || "Error creating answer" } };
+    const insertMessage = insertError?.message || "Error creating answer";
+
+    if (markedInboxQuestionId) {
+      const rollbackRes = await rollbackInboxQuestionAnswered(
+        markedInboxQuestionId,
+        classId,
+        data.targetProfileId
+      );
+
+      if (rollbackRes.error) {
+        return {
+          data: null,
+          error: {
+            message: `${insertMessage}; additionally failed to rollback inbox question: ${rollbackRes.error.message}`,
+            code: "ANSWER_INSERT_AND_ROLLBACK_FAILED",
+          },
+        };
+      }
+    }
+
+    return { data: null, error: { message: insertMessage } };
   }
 
   return { data: mapAnswer(created), error: null };
