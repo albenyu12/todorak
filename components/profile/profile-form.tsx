@@ -16,7 +16,7 @@ const SKILL_OPTIONS = [
 ];
 const LOOKING_FOR_OPTIONS: Role[] = ["개발자", "디자이너", "PM", "마케터", "데이터분석가"];
 const EMPTY_FORM: Partial<OnboardingFormData> = {
-  role: "",
+  roles: [],
   interests: [],
   skills: [],
   lookingFor: [],
@@ -31,7 +31,7 @@ function getInitialForm(user: StudentProfile | null): Partial<OnboardingFormData
     department: user.department,
     year: String(user.year),
     bio: user.bio ?? "",
-    role: user.role,
+    roles: user.roles ?? [],
     interests: user.interests,
     skills: user.skills,
     lookingFor: user.lookingFor,
@@ -82,7 +82,7 @@ function ProfileFormFields({
       department: form.department!,
       year: parseInt(form.year!),
       bio: form.bio || undefined,
-      role: form.role as Role,
+      roles: (form.roles as Role[]) ?? [],
       interests: form.interests ?? [],
       skills: form.skills ?? [],
       lookingFor: form.lookingFor ?? [],
@@ -95,7 +95,7 @@ function ProfileFormFields({
     router.push(isEdit ? "/profile" : "/recommendations");
   }
 
-  function toggleTag(field: "interests" | "skills" | "lookingFor", value: string) {
+  function toggleTag(field: "interests" | "skills" | "lookingFor" | "roles", value: string) {
     const current = (form[field] as string[]) ?? [];
     const updated = current.includes(value) ? current.filter((v) => v !== value) : [...current, value];
     setErrors((prev) => ({ ...prev, [field]: "" }));
@@ -186,23 +186,12 @@ function ProfileFormFields({
         </div>
       </Field>
 
-      <Field label="역할" required error={errors.role}>
-        <div className="flex flex-wrap gap-2">
-          {ROLE_OPTIONS.map((opt) => (
-            <button
-              key={opt}
-              type="button"
-              onClick={() => { setForm((p) => ({ ...p, role: opt })); setErrors((p) => ({ ...p, role: "" })); }}
-              className={`rounded-full px-3 py-1 text-sm transition-colors ${
-                form.role === opt
-                  ? "border border-indigo-500 bg-indigo-50 text-indigo-600 font-medium"
-                  : "border border-gray-300 text-gray-600 hover:border-indigo-300"
-              }`}
-            >
-              {opt}
-            </button>
-          ))}
-        </div>
+      <Field label="역할" required error={errors.roles}>
+        <TagPicker
+          options={ROLE_OPTIONS}
+          selected={(form.roles as string[]) ?? []}
+          onToggle={(v) => toggleTag("roles", v)}
+        />
       </Field>
 
       <Field label="보유 스킬" required error={errors.skills}>
@@ -290,7 +279,7 @@ function TagPicker({
               : "border border-gray-300 text-gray-600 hover:border-indigo-300"
           }`}
         >
-          {selected.includes(opt) ? `✓ ${opt}` : opt}
+          {opt}
         </button>
       ))}
     </div>

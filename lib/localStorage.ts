@@ -53,13 +53,17 @@ function normalizeContactMethods(value: unknown): ContactMethod[] {
 function normalizeStudentProfile(value: unknown): StudentProfile | null {
   if (!isRecord(value)) return null;
 
-  const { id, name, department, year, bio, role, avatarInitial, classId } = value;
+  const { id, name, department, year, bio, avatarInitial, classId } = value;
+  
+  // roles 필드가 있으면 사용, 없으면 role 필드를 배열로 감싸서 사용
+  const roles = value.roles ? getRoleArray(value.roles) : (value.role ? getRoleArray([value.role]) : []);
+
   if (
     typeof id !== "string" ||
     typeof name !== "string" ||
     typeof department !== "string" ||
     typeof year !== "number" ||
-    !ROLES.includes(role as Role)
+    roles.length === 0
   ) {
     return null;
   }
@@ -70,7 +74,7 @@ function normalizeStudentProfile(value: unknown): StudentProfile | null {
     department,
     year,
     bio: typeof bio === "string" && bio.length > 0 ? bio : undefined,
-    role: role as Role,
+    roles,
     interests: getStringArray(value.interests),
     skills: getStringArray(value.skills),
     lookingFor: getRoleArray(value.lookingFor),

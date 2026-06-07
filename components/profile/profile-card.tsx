@@ -16,10 +16,12 @@ export default function ProfileCard({ profile }: ProfileCardProps) {
           <p className="text-sm text-gray-500">
             {profile.department} · {profile.year}학년
           </p>
-          <div className="mt-1 flex gap-1.5">
-            <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">
-              {profile.role}
-            </span>
+          <div className="mt-1 flex flex-wrap gap-1.5">
+            {profile.roles.map((role) => (
+              <span key={role} className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">
+                {role}
+              </span>
+            ))}
           </div>
         </div>
       </div>

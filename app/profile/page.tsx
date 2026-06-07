@@ -47,10 +47,12 @@ export default function ProfilePage() {
           <div>
             <p className="font-bold text-gray-900">{user.name}</p>
             <p className="text-sm text-gray-500">{user.department} · {user.year}학년</p>
-            <div className="mt-1 flex gap-1.5">
-              <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">
-                {user.role}
-              </span>
+            <div className="mt-1 flex flex-wrap gap-1.5">
+              {user.roles.map((role) => (
+                <span key={role} className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">
+                  {role}
+                </span>
+              ))}
             </div>
           </div>
         </div>

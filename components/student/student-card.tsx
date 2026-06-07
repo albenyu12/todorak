@@ -20,15 +20,17 @@ export default function StudentCard({ student, matchReasons }: StudentCardProps)
               <span className="text-xs text-gray-400">
                 {student.department} {student.year}학년
               </span>
-              <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-xs text-indigo-600">
-                {student.role}
-              </span>
+              {student.roles?.map((role) => (
+                <span key={role} className="rounded-full bg-indigo-50 px-2 py-0.5 text-xs text-indigo-600">
+                  {role}
+                </span>
+              ))}
             </div>
             {student.bio && (
               <p className="mt-1 text-sm text-gray-600 line-clamp-2">{student.bio}</p>
             )}
             <div className="mt-2 flex flex-wrap gap-1">
-              {student.skills.map((skill) => (
+              {student.skills?.map((skill) => (
                 <span
                   key={skill}
                   className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600"

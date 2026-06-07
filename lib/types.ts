@@ -24,7 +24,7 @@ export interface StudentProfile {
   department: string;
   year: number;
   bio?: string;
-  role: Role;
+  roles: Role[];
   interests: string[];
   skills: string[];
   lookingFor: Role[];
@@ -71,7 +71,7 @@ export interface OnboardingFormData {
   department: string;
   year: string;
   bio?: string;
-  role: Role | "";
+  roles: Role[];
   interests: string[];
   skills: string[];
   lookingFor: Role[];

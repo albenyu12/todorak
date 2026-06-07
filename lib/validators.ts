@@ -21,7 +21,7 @@ const profileFormSchema = z.object({
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: `자기소개를 ${missingChars}자 더 입력해주세요.` });
     }
   }),
-  role: z.string().trim().min(1, { message: "역할을 선택해주세요." }),
+  roles: z.array(z.string()).min(1, { message: "역할을 최소 1개 이상 선택해주세요." }),
   interests: z.array(z.string()).min(1, { message: "관심사를 최소 1개 이상 선택해주세요." }),
   skills: z.array(z.string()).min(1, { message: "기술 스택을 최소 1개 이상 선택해주세요." }),
   lookingFor: z.array(z.string()).min(1, { message: "찾는 팀원 조건을 최소 1개 이상 선택해주세요." }),
@@ -55,8 +55,8 @@ export function validateProfileForm(
   if (isFinalSubmit || data.bio !== undefined) {
     addError("bio", profileFormSchema.shape.bio.safeParse(data.bio ?? ""));
   }
-  if (isFinalSubmit || data.role !== undefined) {
-    addError("role", profileFormSchema.shape.role.safeParse(data.role ?? ""));
+  if (isFinalSubmit || data.roles !== undefined) {
+    addError("roles", profileFormSchema.shape.roles.safeParse(data.roles ?? []));
   }
   if (isFinalSubmit || data.interests !== undefined) {
     addError("interests", profileFormSchema.shape.interests.safeParse(data.interests ?? []));
