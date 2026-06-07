@@ -115,12 +115,12 @@ export async function markInboxQuestionAnswered(
     .single();
 
   if (error || !updated) {
-    return { 
-      data: null, 
-      error: { 
+    return {
+      data: null,
+      error: {
         message: error ? error.message : "Error marking inbox question as answered (already answered or mismatch)",
         code: "UPDATE_FAILED"
-      } 
+      }
     };
   }
 

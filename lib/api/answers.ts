@@ -1,5 +1,5 @@
 import { supabase } from "../supabase/client";
-import { Answer, AnswerRow, ApiResponse } from "./types";
+import { Answer, AnswerRow, ApiResponse, InboxQuestion } from "./types";
 import { markInboxQuestionAnswered, getInboxQuestionById } from "./inbox-questions";
 import { getProfileById } from "./profiles";
 
@@ -18,6 +18,37 @@ function mapAnswer(data: AnswerRow): Answer {
   };
 }
 
+async function rollbackInboxQuestionAnswered(
+  questionId: string,
+  classId: string,
+  targetProfileId: string
+): Promise<ApiResponse<null>> {
+  if (!supabase) return { data: null, error: { message: "Supabase client not initialized" } };
+
+  const { error } = await supabase
+    .from("inbox_questions")
+    .update({
+      is_answered: false,
+      answered_at: null,
+    })
+    .eq("id", questionId)
+    .eq("class_id", classId)
+    .eq("target_profile_id", targetProfileId)
+    .eq("is_answered", true);
+
+  if (error) {
+    return {
+      data: null,
+      error: {
+        message: error.message,
+        code: "ROLLBACK_FAILED",
+      },
+    };
+  }
+
+  return { data: null, error: null };
+}
+
 export async function createAnswer(
   classId: string,
   data: {
@@ -31,9 +62,11 @@ export async function createAnswer(
   }
 ): Promise<ApiResponse<Answer>> {
   if (!supabase) return { data: null, error: { message: "Supabase client not initialized" } };
+  let markedInboxQuestionId: string | null = null;
+  let inboxQuestion: InboxQuestion | null = null;
 
   // 1. Data consistency and Business logic validation
-  
+
   // Rule 1: Type-specific inboxQuestionId validation
   if (data.answerType === "online") {
     if (!data.inboxQuestionId) {
@@ -50,10 +83,13 @@ export async function createAnswer(
     if (data.targetProfileId !== data.recorderProfileId) {
       return { data: null, error: { message: "For 'first' answers, targetProfileId must equal recorderProfileId" } };
     }
+    if (data.questionTemplateId !== null) {
+      return { data: null, error: { message: "questionTemplateId must be null for first answers" } };
+    }
   }
 
   // 2. ID Existence and Class membership verification
-  
+
   // Verify targetProfileId belongs to classId
   const targetProfileRes = await getProfileById(data.targetProfileId, classId);
   if (targetProfileRes.error || !targetProfileRes.data) {
@@ -74,7 +110,7 @@ export async function createAnswer(
     if (inboxQuestionRes.error || !inboxQuestionRes.data) {
       return { data: null, error: { message: "Inbox question not found or class mismatch" } };
     }
-    const inboxQuestion = inboxQuestionRes.data;
+    inboxQuestion = inboxQuestionRes.data;
     if (inboxQuestion.targetProfileId !== data.targetProfileId) {
       return { data: null, error: { message: "Inbox question target profile mismatch" } };
     }
@@ -84,21 +120,27 @@ export async function createAnswer(
   }
 
   // 3. Execution (Create Answer and Update Status)
-  
+
   // For online answers, we try to mark as answered FIRST to prevent duplicate answers
   // This is a partial protection against race conditions without full RPC/transactions
   if (data.answerType === "online" && data.inboxQuestionId) {
     const markRes = await markInboxQuestionAnswered(data.inboxQuestionId, classId, data.targetProfileId);
     if (markRes.error) {
-      return { 
-        data: null, 
-        error: { 
+      return {
+        data: null,
+        error: {
           message: `Failed to mark question as answered: ${markRes.error.message}`,
           code: "PRE_STATUS_UPDATE_FAILED"
-        } 
+        }
       };
     }
+    markedInboxQuestionId = data.inboxQuestionId;
   }
+
+  const insertQuestionTemplateId =
+    data.answerType === "online" ? inboxQuestion?.questionTemplateId ?? null : data.questionTemplateId;
+  const insertQuestionText =
+    data.answerType === "online" ? inboxQuestion?.questionText ?? data.questionText : data.questionText;
 
   // Create the answer record
   const { data: created, error: insertError } = await supabase
@@ -108,8 +150,8 @@ export async function createAnswer(
       target_profile_id: data.targetProfileId,
       recorder_profile_id: data.recorderProfileId,
       inbox_question_id: data.inboxQuestionId,
-      question_template_id: data.questionTemplateId,
-      question_text: data.questionText,
+      question_template_id: insertQuestionTemplateId,
+      question_text: insertQuestionText,
       answer_text: data.answerText,
       answer_type: data.answerType,
     })
@@ -117,9 +159,27 @@ export async function createAnswer(
     .single();
 
   if (insertError || !created) {
-    // Note: If this fails for an online answer, the question is now marked as answered but no answer exists.
-    // In a production app, we would use an RPC to handle this transactionally.
-    return { data: null, error: { message: insertError?.message || "Error creating answer" } };
+    const insertMessage = insertError?.message || "Error creating answer";
+
+    if (markedInboxQuestionId) {
+      const rollbackRes = await rollbackInboxQuestionAnswered(
+        markedInboxQuestionId,
+        classId,
+        data.targetProfileId
+      );
+
+      if (rollbackRes.error) {
+        return {
+          data: null,
+          error: {
+            message: `${insertMessage}; additionally failed to rollback inbox question: ${rollbackRes.error.message}`,
+            code: "ANSWER_INSERT_AND_ROLLBACK_FAILED",
+          },
+        };
+      }
+    }
+
+    return { data: null, error: { message: insertMessage } };
   }
 
   return { data: mapAnswer(created), error: null };

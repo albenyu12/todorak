@@ -63,7 +63,7 @@ export type ApiError = {
   status?: number;
 };
 
-export type ApiResponse<T> = 
+export type ApiResponse<T> =
   | { data: T; error: null }
   | { data: null; error: ApiError };
 

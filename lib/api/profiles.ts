@@ -75,7 +75,7 @@ export async function updateProfile(
   if (data.lookingFor !== undefined) updateData.looking_for = data.lookingFor;
   if (data.contactMethods !== undefined) updateData.contact_methods = data.contactMethods;
   if (data.avatarInitial !== undefined) updateData.avatar_initial = data.avatarInitial;
-  
+
   updateData.updated_at = new Date().toISOString();
 
   const { data: updated, error } = await supabase
