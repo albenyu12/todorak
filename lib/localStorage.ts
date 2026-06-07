@@ -42,11 +42,14 @@ function normalizeContactMethods(value: unknown): ContactMethod[] {
     const contactType = item.type ?? item.method;
     const contactValue = item.value;
 
-    const allowedTypes = ["email", "instagram", "openchat", "link"];
+    const allowedTypes = ["email", "link", "instagram", "openchat"]; // instagram, openchat은 link로 변환 대상
     if (!allowedTypes.includes(contactType as string) || typeof contactValue !== "string") {
       return [];
     }
-    return [{ type: contactType as ContactMethod["type"], value: contactValue }];
+    
+    // DB 계약 준수: email이 아니면 모두 link로 정규화
+    const finalType = (contactType === "email" ? "email" : "link") as ContactMethod["type"];
+    return [{ type: finalType, value: contactValue }];
   });
 }
 
@@ -55,15 +58,20 @@ function normalizeStudentProfile(value: unknown): StudentProfile | null {
 
   const { id, name, department, year, bio, avatarInitial, classId } = value;
   
-  // roles 필드가 있으면 사용, 없으면 role 필드를 배열로 감싸서 사용
-  const roles = value.roles ? getRoleArray(value.roles) : (value.role ? getRoleArray([value.role]) : []);
+  // roles(배열) 또는 role(단수) 대응
+  let role: Role | null = null;
+  if (typeof value.role === "string" && ROLES.includes(value.role as Role)) {
+    role = value.role as Role;
+  } else if (Array.isArray(value.roles) && value.roles.length > 0 && ROLES.includes(value.roles[0] as Role)) {
+    role = value.roles[0] as Role;
+  }
 
   if (
     typeof id !== "string" ||
     typeof name !== "string" ||
     typeof department !== "string" ||
     typeof year !== "number" ||
-    roles.length === 0
+    !role
   ) {
     return null;
   }
@@ -74,7 +82,7 @@ function normalizeStudentProfile(value: unknown): StudentProfile | null {
     department,
     year,
     bio: typeof bio === "string" && bio.length > 0 ? bio : undefined,
-    roles,
+    role,
     interests: getStringArray(value.interests),
     skills: getStringArray(value.skills),
     lookingFor: getRoleArray(value.lookingFor),
@@ -116,10 +124,7 @@ export function saveAnswer(answer: Answer): void {
 
 export function getAnswers(): Answer[] {
   if (typeof window === "undefined") return [];
-  
-  // [1번 todo 해결 : getAnswers 호출 시점에 initMockAnswers를 트리거하여 첫 방문자가 /answers 페이지에 진입했을 때 데이터가 자동으로 심기도록 보장]
   initMockAnswers();
-  
   return safeParse<Answer[]>(localStorage.getItem(KEYS.ANSWERS)) ?? [];
 }
 
@@ -131,8 +136,6 @@ export function initMockAnswers(): void {
   if (typeof window === "undefined") return;
   const parsed = safeParse<Answer[]>(localStorage.getItem(KEYS.ANSWERS));
   if (parsed) {
-    // 구버전 데이터(answerType 없음)면 재시딩
-    // [빌드 에러 해결: parsed는 배열이므로 첫 번째 아이템인 parsed[0].answerType의 유무를 체크하도록 정상 수정]
     if (parsed.length > 0 && !parsed[0].answerType) {
       localStorage.removeItem(KEYS.ANSWERS);
     } else {

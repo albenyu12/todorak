@@ -4,7 +4,7 @@
 // 완료 기준: 카테고리 탭 필터 시 항상 2개 이상의 질문이 표시됨
 
 // 2번 TODO (Y): 프로필 기반 추천 질문 확장
-// 입력값: StudentProfile (interests, roles)
+// 입력값: StudentProfile (interests, role)
 // 해야 할 일: getPersonalizedQuestions(profile: StudentProfile): RecommendedQuestion[]
 //             함수를 추가해서 상대방 프로필에 따라 질문을 추천
 //             예: role이 "디자이너"면 "어떤 디자인 툴을 주로 사용하나요?" 같은 질문 우선 노출
@@ -69,7 +69,7 @@ export function getPersonalizedQuestions(profile: StudentProfile): RecommendedQu
   const scoredQuestions = QUESTIONS.map((question) => {
     let priorityScore = 0;
 
-    if (question.category === "role" && profile.roles && profile.roles.length > 0) {
+    if (question.category === "role" && profile.role) {
       priorityScore += 30;
     }
 

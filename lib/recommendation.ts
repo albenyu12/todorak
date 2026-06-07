@@ -1,8 +1,8 @@
-// 1번 TODO (Y): roles 배열 매칭으로 교체.
-// 입력값: currentUser.lookingFor (Role[]), student.roles (Role[])
-// 해야 할 일: 현재 단일 role 비교를 다중 roles 중 하나라도 포함되는지 확인하는 방식으로 변경
-//             student.roles.some(r => currentUser.lookingFor.includes(r)) 방식으로 교체
-// 완료 기준: lookingFor에 "디자이너"가 있고 student.roles에 "디자이너"가 포함되면 매칭됨
+// 1번 TODO (Y): role 정확 매칭으로 교체.
+// 입력값: currentUser.lookingFor (Role[]), student.role (Role)
+// 해야 할 일: 현재 skills 문자열 포함 비교를 role 정확 일치로 변경
+//             currentUser.lookingFor.includes(student.role) 방식으로 교체
+// 완료 기준: lookingFor에 "디자이너"가 있고 student.role이 "디자이너"이면 매칭됨
 
 // 3번 TODO (Y): 차이 기반 추천 (보완성 강화)
 // 입력값: currentUser.skills, student.skills
@@ -48,18 +48,14 @@ export function getRecommendations(
     }
 
     // 1번 TODO (Y): role 정확 매칭 및 가산점 텍스트 명시
-    const sharedRolesWithLookingFor = (student.roles || []).filter((r) =>
-      (currentUser.lookingFor || []).includes(r)
-    );
-    if (sharedRolesWithLookingFor.length > 0) {
+    const wantsFromStudent = (currentUser.lookingFor || []).includes(student.role);
+    if (wantsFromStudent) {
       score += 20;
       matchReasons.push("내가 찾고 있는 역할 보유 (+20점)");
     }
 
-    const rolesStudentWantsMe = (currentUser.roles || []).filter((r) =>
-      (student.lookingFor || []).includes(r)
-    );
-    if (rolesStudentWantsMe.length > 0) {
+    const studentWantsMe = (student.lookingFor || []).includes(currentUser.role);
+    if (studentWantsMe) {
       score += 15;
       matchReasons.push("상대방이 찾는 역할 보유 (+15점)");
     }
@@ -78,7 +74,7 @@ export function getRecommendations(
     }
 
     // 🔥 [추가 기능] 사유 목록 맨 앞에 총점 줄바꿈 텍스트를 주입하여 카드 최상단에 노출시킵니다.
-    matchReasons.unshift(`🔥 추천 총합 점수: ${score}점`);
+    matchReasons.unshift(`🔥 추천 총합 점수: ${Math.floor(score)}점`);
 
     // 5번 TODO 해결(Y): 동점 시 랜덤 순서를 위해 score에 소수점 노이즈 부여
     const noise = Math.random() * 0.001;
