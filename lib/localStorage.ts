@@ -46,7 +46,7 @@ function normalizeContactMethods(value: unknown): ContactMethod[] {
     if (!allowedTypes.includes(contactType as string) || typeof contactValue !== "string") {
       return [];
     }
-    return [{ type: contactType as any, value: contactValue }];
+    return [{ type: contactType as ContactMethod["type"], value: contactValue }];
   });
 }
 
