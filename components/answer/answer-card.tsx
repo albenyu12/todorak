@@ -56,7 +56,7 @@ export default function AnswerCard({ answer }: AnswerCardProps) {
           {/* ⚠️ 이름 노출 금지: 반드시 "익명의 학생"으로만 표시 */}
           <span className="text-xs text-gray-400">익명의 학생</span>
           <span className="text-xs text-gray-400">
-            {formatDate(answer.recordedAt)}
+            {formatDate(answer.recordedAt || answer.createdAt || "")}
           </span>
         </div>
       </Card>

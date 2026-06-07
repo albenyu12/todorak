@@ -12,7 +12,7 @@ export default function AnswerDetailPage() {
   const answer = isClient ? getAnswerById(answerId) : null;
 
   const student = answer
-    ? MOCK_STUDENTS.find((s) => s.id === answer.targetStudentId)
+    ? MOCK_STUDENTS.find((s) => s.id === (answer.targetProfileId || answer.targetStudentId))
     : null;
 
   if (!isClient) return null;
@@ -27,6 +27,8 @@ export default function AnswerDetailPage() {
       </div>
     );
   }
+
+  const displayDate = answer.createdAt || answer.recordedAt;
 
   return (
     <div className="page-container">
@@ -49,7 +51,7 @@ export default function AnswerDetailPage() {
         </div>
 
         <p className="mt-4 text-xs text-gray-300">
-          {new Date(answer.recordedAt).toLocaleString("ko-KR")}
+          {displayDate ? new Date(displayDate).toLocaleString("ko-KR") : ""}
         </p>
       </div>
 

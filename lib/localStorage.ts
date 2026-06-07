@@ -1,58 +1,52 @@
-"use client";
+/**
+ * Mock LocalStorage Manager
+ * Handles simulation of persistence using browser localStorage.
+ * Legacy utility kept for backward compatibility during Step 08 migration.
+ */
 
-import { StudentProfile, Answer, AnonymousQuestion, ContactMethod, Role } from "@/lib/types";
-import { MOCK_ANSWERS } from "@/lib/mock-answers";
-
-function safeParse<T>(raw: string | null): T | null {
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw) as T;
-  } catch {
-    return null;
-  }
-}
+import { StudentProfile, Answer, AnonymousQuestion, Role, ContactMethod } from "./types";
+import { MOCK_ANSWERS } from "./mock-answers";
+import { MOCK_STUDENTS } from "./mock-students";
 
 const KEYS = {
   CURRENT_USER: "todorak_current_user",
   ANSWERS: "todorak_answers",
   ANONYMOUS_QUESTIONS: "todorak_anonymous_questions",
-  SERVER_START_TIME: "todorak_server_start_time",
+  SERVER_START_TIME: "todorak_server_start",
 } as const;
+
+function safeParse<T>(json: string | null): T | null {
+  if (!json) return null;
+  try {
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+}
+
+function getStringArray(val: unknown): string[] {
+  return Array.isArray(val) ? val.filter((v): v is string => typeof v === "string") : [];
+}
+
+function getRoleArray(val: unknown): Role[] {
+  const roles: Role[] = ["개발자", "디자이너", "마케터", "데이터분석가", "PM"];
+  return Array.isArray(val) ? val.filter((v): v is Role => roles.includes(v as Role)) : [];
+}
+
+function normalizeContactMethods(val: unknown): ContactMethod[] {
+  if (!Array.isArray(val)) return [];
+  return val.filter((v): v is ContactMethod => 
+    !!v && typeof v === "object" && "type" in v && "value" in v
+  );
+}
 
 const ROLES: Role[] = ["개발자", "디자이너", "마케터", "데이터분석가", "PM"];
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
-}
+function normalizeStudentProfile(value: any): StudentProfile | null {
+  if (!value || typeof value !== "object") return null;
 
-function getStringArray(value: unknown): string[] {
-  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
-}
+  const { id, name, department, year, bio, role, interests, skills, lookingFor, contactMethods, avatarInitial, classId } = value;
 
-function getRoleArray(value: unknown): Role[] {
-  return getStringArray(value).filter((item): item is Role => ROLES.includes(item as Role));
-}
-
-function normalizeContactMethods(value: unknown): ContactMethod[] {
-  if (!Array.isArray(value)) return [];
-
-  return value.flatMap((item) => {
-    if (!isRecord(item)) return [];
-
-    const contactType = item.type ?? item.method;
-    const contactValue = item.value;
-
-    if ((contactType !== "email" && contactType !== "link") || typeof contactValue !== "string") {
-      return [];
-    }
-    return [{ type: contactType, value: contactValue }];
-  });
-}
-
-function normalizeStudentProfile(value: unknown): StudentProfile | null {
-  if (!isRecord(value)) return null;
-
-  const { id, name, department, year, bio, role, avatarInitial, classId } = value;
   if (
     typeof id !== "string" ||
     typeof name !== "string" ||
@@ -68,14 +62,14 @@ function normalizeStudentProfile(value: unknown): StudentProfile | null {
     name,
     department,
     year,
-    bio: typeof bio === "string" && bio.length > 0 ? bio : undefined,
+    bio: typeof bio === "string" && bio.length > 0 ? bio : null,
     role: role as Role,
-    interests: getStringArray(value.interests),
-    skills: getStringArray(value.skills),
-    lookingFor: getRoleArray(value.lookingFor),
-    contactMethods: normalizeContactMethods(value.contactMethods ?? value.contacts),
-    classId: typeof classId === "string" ? classId : undefined,
-    avatarInitial: typeof avatarInitial === "string" ? avatarInitial : undefined,
+    interests: getStringArray(interests),
+    skills: getStringArray(skills),
+    lookingFor: getRoleArray(lookingFor),
+    contactMethods: normalizeContactMethods(contactMethods),
+    classId: typeof classId === "string" ? classId : "legacy-class",
+    avatarInitial: typeof avatarInitial === "string" ? avatarInitial : null,
   };
 }
 

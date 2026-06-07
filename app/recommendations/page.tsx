@@ -10,7 +10,7 @@ export default function RecommendationsPage() {
   const isClient = useIsClient();
   const user = isClient ? getCurrentUser() : null;
   const exploredIds = user
-    ? [...new Set(getAnswers().filter((a) => a.answererId === user.id).map((a) => a.targetStudentId))]
+    ? [...new Set(getAnswers().filter((a) => a.answererId === user.id).map((a) => a.targetStudentId || a.targetProfileId))].filter((id): id is string => !!id)
     : [];
   const recommendations = user
     ? getRecommendations(user, MOCK_STUDENTS, exploredIds)
