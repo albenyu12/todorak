@@ -1,6 +1,9 @@
 "use client";
 
-import { getAnswers } from "@/lib/localStorage";
+import { useEffect, useState } from "react";
+import { getAnswersForProfile } from "@/lib/api/answers";
+import { Answer } from "@/lib/api/types";
+import { getStoredClassId } from "@/lib/client-session";
 import { useIsClient } from "@/lib/use-is-client";
 import AnswerCard from "@/components/answer/answer-card";
 
@@ -10,11 +13,33 @@ interface StudentAnswersProps {
 
 export default function StudentAnswers({ studentId }: StudentAnswersProps) {
   const isClient = useIsClient();
-  const answers = isClient
-    ? getAnswers().filter((a) => a.targetStudentId === studentId)
-    : [];
+  const [answers, setAnswers] = useState<Answer[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  if (answers.length === 0) return null;
+  useEffect(() => {
+    if (!isClient) return;
+
+    async function fetchAnswers() {
+      const classId = getStoredClassId();
+      if (!classId) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const data = await getAnswersForProfile(studentId, classId!);
+        setAnswers(data);
+      } catch (err) {
+        console.error("Failed to fetch student answers:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchAnswers();
+  }, [isClient, studentId]);
+
+  if (!isClient || loading || answers.length === 0) return null;
 
   return (
     <div className="mt-8">

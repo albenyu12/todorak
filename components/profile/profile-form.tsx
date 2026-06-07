@@ -47,20 +47,23 @@ export default function ProfileForm() {
   useEffect(() => {
     if (!isEdit || !isClient) return;
 
-    const classId = getStoredClassId();
-    const profileId = localStorage.getItem("todorak:profileId");
-
-    if (!classId || !profileId) {
-      setLoading(false);
-      return;
-    }
-
     async function fetchProfile() {
-      const res = await getProfileById(profileId!, classId!);
-      if (res.data) {
-        setInitialUser(res.data);
+      const classId = getStoredClassId();
+      const profileId = localStorage.getItem("todorak:profileId");
+
+      if (!classId || !profileId) {
+        setLoading(false);
+        return;
       }
-      setLoading(false);
+
+      try {
+        const res = await getProfileById(profileId!, classId!);
+        if (res.data) {
+          setInitialUser(res.data);
+        }
+      } finally {
+        setLoading(false);
+      }
     }
 
     fetchProfile();
@@ -152,8 +155,9 @@ function ProfileFormFields({
       }
 
       router.push(isEdit ? "/profile" : "/recommendations");
-    } catch (err: any) {
-      alert(`저장에 실패했습니다: ${err.message}`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다.";
+      alert(`저장에 실패했습니다: ${message}`);
     } finally {
       setIsSubmitting(false);
     }

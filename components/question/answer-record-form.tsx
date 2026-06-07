@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Answer } from "@/lib/types";
-import { saveAnswer, getCurrentUser } from "@/lib/localStorage";
+import { createAnswer } from "@/lib/api/answers";
+import { getStoredClassId, getStoredProfileId } from "@/lib/client-session";
 import Button from "@/components/ui/button";
 import Textarea from "@/components/ui/textarea";
 
@@ -25,8 +25,10 @@ export default function AnswerRecordForm({
 }: AnswerRecordFormProps) {
   const router = useRouter();
   const [answerText, setAnswerText] = useState("");
+  const [error, setError] = useState("");
   // 저장 완료 후 메시지 표시 → 잠시 뒤 목록으로 이동
   const [saved, setSaved] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 공백만 있는 입력은 0자로 취급 (trim 후 길이)
   const charCount = answerText.trim().length;
@@ -40,23 +42,43 @@ export default function AnswerRecordForm({
     return () => clearTimeout(timer);
   }, [saved, router]);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!isValid || saved) return;
+    if (!isValid || saved || isSubmitting) return;
 
-    const answer: Answer = {
-      id: `ans-${Date.now()}`,
-      questionId,
-      questionText,
-      answerText: answerText.trim(),
-      targetStudentId,
-      answererId: getCurrentUser()?.id,
-      recordedAt: new Date().toISOString(),
-      answerType: "inperson",
-    };
+    const classId = getStoredClassId();
+    const recorderProfileId = getStoredProfileId();
 
-    saveAnswer(answer);
-    setSaved(true);
+    if (!classId) {
+      setError("클래스 정보를 찾을 수 없습니다.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError("");
+
+    try {
+      const res = await createAnswer(classId, {
+        targetProfileId: targetStudentId,
+        recorderProfileId: recorderProfileId,
+        inboxQuestionId: null,
+        questionTemplateId: questionId.startsWith("custom-") ? null : questionId,
+        questionText: questionText,
+        answerText: answerText.trim(),
+        answerType: "inperson",
+      });
+
+      if (res.error) {
+        setError(res.error.message);
+      } else {
+        setSaved(true);
+      }
+    } catch (err) {
+      console.error("Save answer error:", err);
+      setError("답변을 저장하는 중 오류가 발생했습니다.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -91,8 +113,13 @@ export default function AnswerRecordForm({
           저장됐어요!
         </p>
       )}
-      <Button type="submit" fullWidth disabled={!isValid || saved}>
-        답변 저장
+      {error && (
+        <p className="text-center text-sm font-medium text-red-600" role="alert">
+          {error}
+        </p>
+      )}
+      <Button type="submit" fullWidth disabled={!isValid || saved || isSubmitting}>
+        {isSubmitting ? "저장 중..." : "답변 저장"}
       </Button>
     </form>
   );

@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { RecommendedQuestion } from "@/lib/types";
 import { QUESTIONS } from "@/lib/questions";
-import { saveAnonymousQuestion } from "@/lib/localStorage";
+import { createInboxQuestion } from "@/lib/api/inbox-questions";
+import { getStoredClassId } from "@/lib/client-session";
 import Button from "@/components/ui/button";
 import Input from "@/components/ui/input";
 import RecommendedQuestionList from "./recommended-question-list";
@@ -20,27 +21,45 @@ export default function QuestionForm({ studentId, mode }: QuestionFormProps) {
   const [customText, setCustomText] = useState("");
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const finalText = customText.trim() || selectedQuestion?.text || "";
   const isOnline = mode === "online";
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!finalText) {
-      setError("질문을 선택하거나 직접 입력해주세요.");
+    if (!finalText || isSubmitting) {
+      if (!finalText) setError("질문을 선택하거나 직접 입력해주세요.");
       return;
     }
     setError("");
 
     if (isOnline) {
-      saveAnonymousQuestion({
-        id: `aq-${Date.now()}`,
-        questionId: selectedQuestion?.id ?? `custom-${Date.now()}`,
-        questionText: finalText,
-        targetStudentId: studentId,
-        createdAt: new Date().toISOString(),
-      });
-      setSubmitted(true);
+      const classId = getStoredClassId();
+      if (!classId) {
+        setError("클래스 정보를 찾을 수 없습니다.");
+        return;
+      }
+
+      setIsSubmitting(true);
+      try {
+        const res = await createInboxQuestion(classId, {
+          targetProfileId: studentId,
+          questionTemplateId: selectedQuestion?.id ?? null,
+          questionText: finalText,
+        });
+
+        if (res.error) {
+          setError(res.error.message);
+        } else {
+          setSubmitted(true);
+        }
+      } catch (err) {
+        console.error("Create inbox question error:", err);
+        setError("질문을 보내는 중 오류가 발생했습니다.");
+      } finally {
+        setIsSubmitting(false);
+      }
       return;
     }
 

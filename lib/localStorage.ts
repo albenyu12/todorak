@@ -6,7 +6,6 @@
 
 import { StudentProfile, Answer, AnonymousQuestion, Role, ContactMethod } from "./types";
 import { MOCK_ANSWERS } from "./mock-answers";
-import { MOCK_STUDENTS } from "./mock-students";
 
 const KEYS = {
   CURRENT_USER: "todorak_current_user",
@@ -42,10 +41,11 @@ function normalizeContactMethods(val: unknown): ContactMethod[] {
 
 const ROLES: Role[] = ["개발자", "디자이너", "마케터", "데이터분석가", "PM"];
 
-function normalizeStudentProfile(value: any): StudentProfile | null {
+function normalizeStudentProfile(value: unknown): StudentProfile | null {
   if (!value || typeof value !== "object") return null;
 
-  const { id, name, department, year, bio, role, interests, skills, lookingFor, contactMethods, avatarInitial, classId } = value;
+  const data = value as Record<string, unknown>;
+  const { id, name, department, year, bio, role, interests, skills, lookingFor, contactMethods, avatarInitial, classId } = data;
 
   if (
     typeof id !== "string" ||

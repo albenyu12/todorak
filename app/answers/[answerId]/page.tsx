@@ -1,21 +1,58 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { getAnswerById } from "@/lib/localStorage";
+import { getAnswerById } from "@/lib/api/answers";
+import { Answer } from "@/lib/api/types";
+import { getStoredClassId } from "@/lib/client-session";
 import { MOCK_STUDENTS } from "@/lib/mock-students";
 import { useIsClient } from "@/lib/use-is-client";
 
 export default function AnswerDetailPage() {
   const { answerId } = useParams<{ answerId: string }>();
   const isClient = useIsClient();
-  const answer = isClient ? getAnswerById(answerId) : null;
+  const [answer, setAnswer] = useState<Answer | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!isClient) return;
+
+    async function fetchAnswer() {
+      const classId = getStoredClassId();
+      if (!classId) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const res = await getAnswerById(answerId, classId!);
+        if (res.data) {
+          setAnswer(res.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch answer:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchAnswer();
+  }, [isClient, answerId]);
 
   const student = answer
-    ? MOCK_STUDENTS.find((s) => s.id === (answer.targetProfileId || answer.targetStudentId))
+    ? MOCK_STUDENTS.find((s) => s.id === answer.targetProfileId)
     : null;
 
   if (!isClient) return null;
+
+  if (loading) {
+    return (
+      <div className="page-container flex justify-center py-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
+      </div>
+    );
+  }
 
   if (!answer) {
     return (
@@ -27,8 +64,6 @@ export default function AnswerDetailPage() {
       </div>
     );
   }
-
-  const displayDate = answer.createdAt || answer.recordedAt;
 
   return (
     <div className="page-container">
@@ -51,7 +86,7 @@ export default function AnswerDetailPage() {
         </div>
 
         <p className="mt-4 text-xs text-gray-300">
-          {displayDate ? new Date(displayDate).toLocaleString("ko-KR") : ""}
+          {new Date(answer.createdAt).toLocaleString("ko-KR")}
         </p>
       </div>
 

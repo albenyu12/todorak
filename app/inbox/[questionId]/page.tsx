@@ -3,13 +3,10 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Answer } from "@/lib/types";
-import {
-  getCurrentUser,
-  getAnonymousQuestionsFor,
-  saveAnswer,
-  deleteAnonymousQuestion,
-} from "@/lib/localStorage";
+import { getInboxQuestionById } from "@/lib/api/inbox-questions";
+import { InboxQuestion } from "@/lib/api/types";
+import { createAnswer } from "@/lib/api/answers";
+import { getStoredClassId, getStoredProfileId } from "@/lib/client-session";
 import { useIsClient } from "@/lib/use-is-client";
 import Button from "@/components/ui/button";
 import Textarea from "@/components/ui/textarea";
@@ -19,47 +16,97 @@ const MIN_LENGTH = 10;
 export default function InboxAnswerPage() {
   const { questionId } = useParams<{ questionId: string }>();
   const router = useRouter();
+  const [question, setQuestion] = useState<InboxQuestion | null>(null);
   const [answerText, setAnswerText] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  
   const isClient = useIsClient();
-  const user = isClient ? getCurrentUser() : null;
-  const question = user
-    ? getAnonymousQuestionsFor(user.id).find((q) => q.id === questionId) ?? null
-    : null;
 
   useEffect(() => {
     if (!isClient) return;
-    if (!getCurrentUser()) {
+
+    const classId = getStoredClassId();
+    const pid = getStoredProfileId();
+
+    if (!classId || !pid) {
       router.replace("/onboarding");
+      return;
     }
-  }, [isClient, router]);
+
+    async function fetchQuestion() {
+      try {
+        const res = await getInboxQuestionById(questionId, classId!);
+        if (res.data) {
+          setQuestion(res.data);
+          if (res.data.isAnswered) {
+            setError("이미 답변한 질문입니다.");
+          }
+        } else {
+          setError(res.error?.message || "질문을 찾을 수 없습니다.");
+        }
+      } catch (err) {
+        console.error("Fetch question error:", err);
+        setError("질문을 불러오는 중 오류가 발생했습니다.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchQuestion();
+  }, [isClient, questionId, router]);
 
   const isValid = answerText.trim().length >= MIN_LENGTH;
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!question || !isValid) return;
+    if (!question || !isValid || submitting || question.isAnswered) return;
 
-    const answer: Answer = {
-      id: `ans-${Date.now()}`,
-      questionId: question.questionId,
-      questionText: question.questionText,
-      answerText: answerText.trim(),
-      targetStudentId: question.targetStudentId,
-      recordedAt: new Date().toISOString(),
-      answerType: "online",
-    };
+    const classId = getStoredClassId();
+    const pid = getStoredProfileId();
 
-    saveAnswer(answer);
-    deleteAnonymousQuestion(question.id);
-    router.push("/answers");
+    if (!classId || !pid) return;
+
+    setSubmitting(true);
+    setError("");
+
+    try {
+      const res = await createAnswer(classId, {
+        targetProfileId: pid,
+        recorderProfileId: null,
+        inboxQuestionId: question.id,
+        questionTemplateId: question.questionTemplateId,
+        questionText: question.questionText,
+        answerText: answerText.trim(),
+        answerType: "online",
+      });
+
+      if (res.error) {
+        setError(res.error.message);
+      } else {
+        router.push("/answers");
+      }
+    } catch (err) {
+      console.error("Submit answer error:", err);
+      setError("답변 저장 중 오류가 발생했습니다.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
-  if (!isClient) return null;
+  if (!isClient || loading) {
+    return (
+      <div className="page-container flex justify-center py-12">
+        {loading && <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>}
+      </div>
+    );
+  }
 
   if (!question) {
     return (
       <div className="page-container text-center py-16">
-        <p className="text-gray-400">질문을 찾을 수 없습니다.</p>
+        <p className="text-gray-400">{error || "질문을 찾을 수 없습니다."}</p>
         <Link href="/inbox" className="btn-primary mt-4 max-w-xs mx-auto">
           받은 질문 목록으로
         </Link>
@@ -97,8 +144,10 @@ export default function InboxAnswerPage() {
           </p>
         </div>
 
-        <Button type="submit" fullWidth disabled={!isValid}>
-          답변 저장
+        {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+
+        <Button type="submit" fullWidth disabled={!isValid || submitting || question.isAnswered}>
+          {submitting ? "저장 중..." : "답변 저장"}
         </Button>
       </form>
     </div>

@@ -34,9 +34,10 @@ const tabClass = (active: boolean) =>
   }`;
 
 // questionId로 QUESTIONS에서 카테고리 조회 (직접 입력 질문은 null)
-function getAnswerCategory(questionId?: string): QuestionCategory | null {
-  if (!questionId) return null;
-  return QUESTIONS.find((q) => q.id === questionId)?.category ?? null;
+function getAnswerCategory(answer: Answer): QuestionCategory | null {
+  const qid = answer.questionTemplateId || answer.questionId;
+  if (!qid) return null;
+  return QUESTIONS.find((q) => q.id === qid)?.category ?? null;
 }
 
 export default function AnonymousAnswerList({ answers }: AnonymousAnswerListProps) {
@@ -52,12 +53,12 @@ export default function AnonymousAnswerList({ answers }: AnonymousAnswerListProp
     activeCategory === "all"
       ? answers
       : answers.filter(
-          (answer) => getAnswerCategory(answer.questionId) === activeCategory,
+          (answer) => getAnswerCategory(answer) === activeCategory,
         );
 
   const sortedAnswers = [...filteredAnswers].sort((a, b) => {
-    const timeA = new Date(a.recordedAt || a.createdAt || 0).getTime();
-    const timeB = new Date(b.recordedAt || b.createdAt || 0).getTime();
+    const timeA = new Date(a.createdAt || a.recordedAt || 0).getTime();
+    const timeB = new Date(b.createdAt || b.recordedAt || 0).getTime();
     const diff = timeA - timeB;
     return sortOrder === "latest" ? -diff : diff;
   });
