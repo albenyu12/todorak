@@ -13,6 +13,7 @@ const KEYS = {
 } as const;
 
 const MOCK_CURRENT_USER_KEY = "todorak_current_user";
+const DEFAULT_CLASS_CODE: Class["code"] = "WEBPROGRAMMING_2026";
 
 export type ClassSession = {
   classCode: string;
@@ -119,8 +120,7 @@ export function saveClassSession(classInfo: Class): ClassSession {
 }
 
 export async function resolveClassSession(classCode: string | null): Promise<ClassSessionState> {
-  const targetClassCode = normalizeClassCode(classCode) ?? getStoredClassCode();
-  if (!targetClassCode) return { status: "missing" };
+  const targetClassCode = normalizeClassCode(classCode) ?? getStoredClassCode() ?? DEFAULT_CLASS_CODE;
 
   const classInfo = await getClassByCode(targetClassCode);
   if (!classInfo) {

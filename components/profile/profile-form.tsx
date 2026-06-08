@@ -6,6 +6,7 @@ import { OnboardingFormData, StudentProfile, Role } from "@/lib/types";
 import { validateOnboardingForm } from "@/lib/validators";
 import { saveCurrentUser, getCurrentUser, initMockAnonymousQuestions } from "@/lib/localStorage";
 import { useIsClient } from "@/lib/use-is-client";
+import { getStoredClassSession, setStoredProfileId, withClassCode } from "@/lib/client-session";
 
 const ROLE_OPTIONS: Role[] = ["개발자", "디자이너", "PM", "마케터", "데이터분석가"];
 const INTEREST_OPTIONS = [
@@ -74,8 +75,15 @@ function ProfileFormFields({
       return;
     }
 
+    const classSession = getStoredClassSession();
+    if (!classSession) {
+      setErrors({ form: "수업 정보를 확인할 수 없어요. QR 코드나 URL로 다시 접속해 주세요." });
+      return;
+    }
+
     const profile: StudentProfile = {
       id: existingId ?? `user-${Date.now()}`,
+      classId: classSession.classId,
       name: form.name!,
       department: form.department!,
       year: parseInt(form.year!),
@@ -89,8 +97,9 @@ function ProfileFormFields({
     };
 
     saveCurrentUser(profile);
+    setStoredProfileId(profile.id);
     if (!isEdit) initMockAnonymousQuestions(profile.id);
-    router.push(isEdit ? "/profile" : "/recommendations");
+    router.push(withClassCode(isEdit ? "/profile" : "/recommendations", classSession.classCode));
   }
 
   function toggleTag(field: "interests" | "skills" | "lookingFor", value: string) {
@@ -184,6 +193,8 @@ function ProfileFormFields({
           onChange={(e) => { setErrors((p) => ({ ...p, bio: "" })); setForm((p) => ({ ...p, bio: e.target.value })); }}
         />
       </Field>
+
+      {errors.form && <p className="text-sm text-red-500">{errors.form}</p>}
 
       <button type="submit" className="btn-primary mt-2">
         {isEdit ? "수정 완료" : "추천 받기"}
