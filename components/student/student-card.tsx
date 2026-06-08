@@ -28,7 +28,7 @@ export default function StudentCard({ student, matchReasons }: StudentCardProps)
               <p className="mt-1 text-sm text-gray-600 line-clamp-2">{student.bio}</p>
             )}
             <div className="mt-2 flex flex-wrap gap-1">
-              {student.skills.map((skill) => (
+              {student.skills?.map((skill) => (
                 <span
                   key={skill}
                   className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600"

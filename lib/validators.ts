@@ -25,6 +25,32 @@ const profileFormSchema = z.object({
   interests: z.array(z.string()).min(1, { message: "관심사를 최소 1개 이상 선택해주세요." }),
   skills: z.array(z.string()).min(1, { message: "기술 스택을 최소 1개 이상 선택해주세요." }),
   lookingFor: z.array(z.string()).min(1, { message: "찾는 팀원 조건을 최소 1개 이상 선택해주세요." }),
+  contactMethods: z.array(z.object({
+    type: z.enum(["email", "link"]),
+    value: z.string().trim().min(1, { message: "연락처를 입력해주세요." })
+  })).min(1, { message: "최소 1개의 연락처를 입력해주세요." }).superRefine((val, ctx) => {
+    val.forEach((contact, idx) => {
+      if (contact.type === "email") {
+        const emailResult = z.string().email().safeParse(contact.value);
+        if (!emailResult.success) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "올바른 이메일 형식이 아닙니다.",
+            path: [idx, "value"]
+          });
+        }
+      } else if (contact.type === "link") {
+        const urlResult = z.string().url().safeParse(contact.value);
+        if (!urlResult.success) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "올바른 URL 형식이 아닙니다. (https:// 포함)",
+            path: [idx, "value"]
+          });
+        }
+      }
+    });
+  }),
 });
 
 export function validateProfileForm(
@@ -63,6 +89,9 @@ export function validateProfileForm(
   if (isFinalSubmit || data.lookingFor !== undefined) {
     addError("lookingFor", profileFormSchema.shape.lookingFor.safeParse(data.lookingFor ?? []));
   }
+  if (isFinalSubmit || data.contactMethods !== undefined) {
+    addError("contactMethods", profileFormSchema.shape.contactMethods.safeParse(data.contactMethods ?? []));
+  }
 
   return errors;
 }
@@ -72,7 +101,6 @@ export const validateOnboardingForm = validateProfileForm;
 export function validateQuestionInput(text: string): ValidationError[] {
   const errors: ValidationError[] = [];
 
-  // TODO (Y): 금지어 필터 추가
   if (!text || text.trim().length === 0) {
     errors.push({ field: "text", message: "질문을 입력해주세요." });
   } else if (text.trim().length < 5) {
