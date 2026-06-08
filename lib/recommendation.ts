@@ -38,8 +38,8 @@ export function getRecommendations(
     const matchReasons: string[] = [];
 
     // 공통 관심사
-    const sharedInterests = currentUser.interests.filter((i) =>
-      student.interests.includes(i)
+    const sharedInterests = (currentUser.interests || []).filter((i) =>
+      (student.interests || []).includes(i)
     );
     if (sharedInterests.length > 0) {
       const interestScore = sharedInterests.length * 10;
@@ -48,21 +48,21 @@ export function getRecommendations(
     }
 
     // 1번 TODO (Y): role 정확 매칭 및 가산점 텍스트 명시
-    const wantsFromStudent = currentUser.lookingFor.includes(student.role);
+    const wantsFromStudent = (currentUser.lookingFor || []).includes(student.role);
     if (wantsFromStudent) {
       score += 20;
-      matchReasons.push("찾고 있는 역할 보유 (+20점)");
+      matchReasons.push("내가 찾고 있는 역할 보유 (+20점)");
     }
 
-    const studentWantsMe = student.lookingFor.includes(currentUser.role);
+    const studentWantsMe = (student.lookingFor || []).includes(currentUser.role);
     if (studentWantsMe) {
       score += 15;
       matchReasons.push("상대방이 찾는 역할 보유 (+15점)");
     }
 
     // 3번 TODO 해결(Y): 차이 기반 추천 (보완성 강화)
-    const complementarySkills = student.skills.filter(
-      (skill) => !currentUser.skills.includes(skill)
+    const complementarySkills = (student.skills || []).filter(
+      (skill) => !(currentUser.skills || []).includes(skill)
     );
 
     if (complementarySkills.length > 0) {
@@ -74,7 +74,7 @@ export function getRecommendations(
     }
 
     // 🔥 [추가 기능] 사유 목록 맨 앞에 총점 줄바꿈 텍스트를 주입하여 카드 최상단에 노출시킵니다.
-    matchReasons.unshift(`🔥 추천 총합 점수: ${score}점`);
+    matchReasons.unshift(`🔥 추천 총합 점수: ${Math.floor(score)}점`);
 
     // 5번 TODO 해결(Y): 동점 시 랜덤 순서를 위해 score에 소수점 노이즈 부여
     const noise = Math.random() * 0.001;

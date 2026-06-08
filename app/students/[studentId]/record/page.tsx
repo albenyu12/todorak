@@ -1,19 +1,69 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { MOCK_STUDENTS } from "@/lib/mock-students";
+import { getProfileById } from "@/lib/api/profiles";
+import { StudentProfile } from "@/lib/api/types";
+import { getStoredClassId } from "@/lib/client-session";
+import { useIsClient } from "@/lib/use-is-client";
 import AnswerRecordForm from "@/components/question/answer-record-form";
-import { notFound } from "next/navigation";
 
-interface Props {
-  params: Promise<{ studentId: string }>;
-  searchParams: Promise<{ qid?: string; qtext?: string }>;
-}
+export default function RecordPage() {
+  const { studentId } = useParams<{ studentId: string }>();
+  const searchParams = useSearchParams();
+  const qid = searchParams.get("qid");
+  const qtext = searchParams.get("qtext");
+  
+  const isClient = useIsClient();
+  const [student, setStudent] = useState<StudentProfile | null>(null);
+  const [loading, setLoading] = useState(true);
 
-export default async function RecordPage({ params, searchParams }: Props) {
-  const { studentId } = await params;
-  const { qid, qtext } = await searchParams;
+  useEffect(() => {
+    if (!isClient) return;
 
-  const student = MOCK_STUDENTS.find((s) => s.id === studentId);
-  if (!student) notFound();
+    async function fetchStudent() {
+      const classId = getStoredClassId();
+      if (!classId) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const res = await getProfileById(studentId, classId);
+        if (res.data) {
+          setStudent(res.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch student profile:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchStudent();
+  }, [isClient, studentId]);
+
+  if (!isClient) return null;
+
+  if (loading) {
+    return (
+      <div className="page-container flex justify-center py-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  if (!student) {
+    return (
+      <div className="page-container text-center py-16">
+        <p className="text-gray-400">학생을 찾을 수 없습니다.</p>
+        <Link href="/recommendations" className="btn-primary mt-4 max-w-xs mx-auto">
+          목록으로 돌아가기
+        </Link>
+      </div>
+    );
+  }
 
   if (!qid || !qtext) {
     return (

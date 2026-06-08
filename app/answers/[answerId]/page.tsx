@@ -6,7 +6,6 @@ import Link from "next/link";
 import { getAnswerById } from "@/lib/api/answers";
 import { Answer } from "@/lib/api/types";
 import { getStoredClassId } from "@/lib/client-session";
-import { MOCK_STUDENTS } from "@/lib/mock-students";
 import { useIsClient } from "@/lib/use-is-client";
 
 export default function AnswerDetailPage() {
@@ -39,10 +38,6 @@ export default function AnswerDetailPage() {
 
     fetchAnswer();
   }, [isClient, answerId]);
-
-  const student = answer
-    ? MOCK_STUDENTS.find((s) => s.id === answer.targetProfileId)
-    : null;
 
   if (!isClient) return null;
 
@@ -90,9 +85,9 @@ export default function AnswerDetailPage() {
         </p>
       </div>
 
-      {student && (
+      {answer.targetProfileId && (
         <Link
-          href={`/students/${student.id}`}
+          href={`/students/${answer.targetProfileId}`}
           className="btn-primary mt-4 text-center"
         >
           이 학생 프로필 보기

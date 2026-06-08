@@ -84,4 +84,5 @@ export interface OnboardingFormData {
   interests: string[];
   skills: string[];
   lookingFor: Role[];
+  contactMethods: ContactMethod[];
 }

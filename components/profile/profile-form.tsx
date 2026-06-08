@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { OnboardingFormData, StudentProfile, Role } from "@/lib/types";
+import { OnboardingFormData, StudentProfile, Role, ContactMethod } from "@/lib/types";
 import { validateOnboardingForm } from "@/lib/validators";
 import { useIsClient } from "@/lib/use-is-client";
-import { getStoredClassId, setStoredProfileId } from "@/lib/client-session";
+import { getStoredClassSession, setStoredProfileId, withClassCode } from "@/lib/client-session";
 import { createProfile, updateProfile, getProfileById } from "@/lib/api/profiles";
 import { createAnswer } from "@/lib/api/answers";
 
@@ -20,7 +20,16 @@ const EMPTY_FORM: Partial<OnboardingFormData> = {
   interests: [],
   skills: [],
   lookingFor: [],
+  contactMethods: [],
 };
+
+// UI 내부에서만 사용하는 임시 연락처 상태 구조
+interface ContactUIState {
+  email: string;
+  instagram: string;
+  openchat: string;
+  link: string;
+}
 
 function getInitialForm(user: StudentProfile | null): Partial<OnboardingFormData> {
   if (!user) return EMPTY_FORM;
@@ -34,7 +43,24 @@ function getInitialForm(user: StudentProfile | null): Partial<OnboardingFormData
     interests: user.interests,
     skills: user.skills,
     lookingFor: user.lookingFor,
+    contactMethods: user.contactMethods ?? [],
   };
+}
+
+// StudentProfile.contactMethods의 실제 데이터에서 UI 상태로 변환
+function getContactUIFromMethods(methods: ContactMethod[] = []): ContactUIState {
+  const uiState: ContactUIState = { email: "", instagram: "", openchat: "", link: "" };
+  
+  methods.forEach(m => {
+    if (m.type === "email") uiState.email = m.value;
+    else {
+      if (m.value.includes("instagram.com")) uiState.instagram = m.value;
+      else if (m.value.includes("open.kakao.com")) uiState.openchat = m.value;
+      else uiState.link = m.value;
+    }
+  });
+  
+  return uiState;
 }
 
 export default function ProfileForm() {
@@ -48,16 +74,16 @@ export default function ProfileForm() {
     if (!isEdit || !isClient) return;
 
     async function fetchProfile() {
-      const classId = getStoredClassId();
+      const session = getStoredClassSession();
       const profileId = localStorage.getItem("todorak:profileId");
 
-      if (!classId || !profileId) {
+      if (!session || !profileId) {
         setLoading(false);
         return;
       }
 
       try {
-        const res = await getProfileById(profileId!, classId!);
+        const res = await getProfileById(profileId, session.classId);
         if (res.data) {
           setInitialUser(res.data);
         }
@@ -95,19 +121,30 @@ function ProfileFormFields({
 }) {
   const router = useRouter();
   const [form, setForm] = useState<Partial<OnboardingFormData>>(() => getInitialForm(initialUser));
+  const [contactUI, setContactUI] = useState<ContactUIState>(() => getContactUIFromMethods(initialUser?.contactMethods));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const validationErrors = validateOnboardingForm(form, true);
+    
+    // UI 상태(contactUI)를 payload용 contactMethods로 변환
+    const methods: ContactMethod[] = [];
+    if (contactUI.email.trim()) methods.push({ type: "email", value: contactUI.email.trim() });
+    if (contactUI.instagram.trim()) methods.push({ type: "link", value: contactUI.instagram.trim() });
+    if (contactUI.openchat.trim()) methods.push({ type: "link", value: contactUI.openchat.trim() });
+    if (contactUI.link.trim()) methods.push({ type: "link", value: contactUI.link.trim() });
+
+    const currentForm = { ...form, contactMethods: methods };
+
+    const validationErrors = validateOnboardingForm(currentForm, true);
     if (validationErrors.length > 0) {
       setErrors(Object.fromEntries(validationErrors.map((err) => [err.field, err.message])));
       return;
     }
 
-    const classId = getStoredClassId();
-    if (!classId) {
+    const session = getStoredClassSession();
+    if (!session) {
       alert("클래스 정보를 찾을 수 없습니다. 다시 접속해주세요.");
       return;
     }
@@ -124,7 +161,7 @@ function ProfileFormFields({
         interests: form.interests ?? [],
         skills: form.skills ?? [],
         lookingFor: form.lookingFor ?? [],
-        contactMethods: initialUser?.contactMethods ?? [],
+        contactMethods: methods,
         avatarInitial: form.name?.[0] || null,
       };
 
@@ -135,14 +172,14 @@ function ProfileFormFields({
         if (res.error) throw new Error(res.error.message);
         resultProfile = res.data;
       } else {
-        const res = await createProfile(classId, profileData);
+        const res = await createProfile(session.classId, profileData);
         if (res.error) throw new Error(res.error.message);
         resultProfile = res.data;
         
         if (resultProfile) {
           setStoredProfileId(resultProfile.id);
           
-          await createAnswer(classId, {
+          await createAnswer(session.classId, {
             targetProfileId: resultProfile.id,
             recorderProfileId: resultProfile.id,
             inboxQuestionId: null,
@@ -154,7 +191,7 @@ function ProfileFormFields({
         }
       }
 
-      router.push(isEdit ? "/profile" : "/recommendations");
+      router.push(withClassCode(isEdit ? "/profile" : "/recommendations", session.classCode));
     } catch (err) {
       const message = err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다.";
       alert(`저장에 실패했습니다: ${message}`);
@@ -169,6 +206,11 @@ function ProfileFormFields({
     setErrors((prev) => ({ ...prev, [field]: "" }));
     setForm((prev) => ({ ...prev, [field]: updated }));
   }
+
+  const handleContactChange = (type: keyof ContactUIState, value: string) => {
+    setContactUI(prev => ({ ...prev, [type]: value }));
+    setErrors(prev => ({ ...prev, contactMethods: "" }));
+  };
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
@@ -204,6 +246,47 @@ function ProfileFormFields({
             <option key={y} value={String(y)}>{y}학년</option>
           ))}
         </select>
+      </Field>
+
+      <Field label="연락처 (최소 1개 입력)" required error={errors.contactMethods}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-gray-400 w-16 text-center">이메일</span>
+            <input
+              className="input text-sm py-1.5"
+              placeholder="example@email.com"
+              value={contactUI.email}
+              onChange={(e) => handleContactChange("email", e.target.value)}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-gray-400 w-16 text-center">인스타</span>
+            <input
+              className="input text-sm py-1.5"
+              placeholder="https://instagram.com/..."
+              value={contactUI.instagram}
+              onChange={(e) => handleContactChange("instagram", e.target.value)}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-gray-400 w-16 text-center">오픈채팅</span>
+            <input
+              className="input text-sm py-1.5"
+              placeholder="https://open.kakao.com/..."
+              value={contactUI.openchat}
+              onChange={(e) => handleContactChange("openchat", e.target.value)}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-gray-400 w-16 text-center">기타링크</span>
+            <input
+              className="input text-sm py-1.5"
+              placeholder="https://..."
+              value={contactUI.link}
+              onChange={(e) => handleContactChange("link", e.target.value)}
+            />
+          </div>
+        </div>
       </Field>
 
       <Field label="역할" required error={errors.role}>
@@ -262,6 +345,8 @@ function ProfileFormFields({
           onChange={(e) => { setErrors((p) => ({ ...p, bio: "" })); setForm((p) => ({ ...p, bio: e.target.value })); }}
         />
       </Field>
+
+      {errors.form && <p className="text-sm text-red-500">{errors.form}</p>}
 
       <button 
         type="submit" 
@@ -323,7 +408,7 @@ function TagPicker({
               : "border border-gray-300 text-gray-600 hover:border-indigo-300"
           }`}
         >
-          {selected.includes(opt) ? `✓ ${opt}` : opt}
+          {opt}
         </button>
       ))}
     </div>

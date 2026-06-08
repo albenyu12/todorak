@@ -73,7 +73,7 @@ export function getPersonalizedQuestions(profile: StudentProfile): RecommendedQu
       priorityScore += 30;
     }
 
-    if (question.category === "interest" && Array.isArray(profile.interests)) {
+    if (question.category === "interest" && Array.isArray(profile.interests) && profile.interests.length > 0) {
       priorityScore += 20;
     }
 
