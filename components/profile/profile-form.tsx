@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { OnboardingFormData, StudentProfile, Role } from "@/lib/types";
+import { OnboardingFormData, StudentProfile, Role, ContactMethod } from "@/lib/types";
 import { validateOnboardingForm } from "@/lib/validators";
 import { saveCurrentUser, getCurrentUser, initMockAnonymousQuestions } from "@/lib/localStorage";
 import { useIsClient } from "@/lib/use-is-client";
@@ -20,7 +20,16 @@ const EMPTY_FORM: Partial<OnboardingFormData> = {
   interests: [],
   skills: [],
   lookingFor: [],
+  contactMethods: [],
 };
+
+// UI 내부에서만 사용하는 임시 연락처 상태 구조
+interface ContactUIState {
+  email: string;
+  instagram: string;
+  openchat: string;
+  link: string;
+}
 
 function getInitialForm(user: StudentProfile | null): Partial<OnboardingFormData> {
   if (!user) return EMPTY_FORM;
@@ -34,6 +43,42 @@ function getInitialForm(user: StudentProfile | null): Partial<OnboardingFormData
     interests: user.interests,
     skills: user.skills,
     lookingFor: user.lookingFor,
+    contactMethods: user.contactMethods ?? [],
+  };
+}
+
+// StudentProfile.contactMethods의 실제 데이터에서 UI 상태로 변환
+function getContactUIFromMethods(methods: ContactMethod[] = []): ContactUIState {
+  const uiState: ContactUIState = { email: "", instagram: "", openchat: "", link: "" };
+  
+  methods.forEach(m => {
+    if (m.type === "email") uiState.email = m.value;
+    else {
+      if (m.value.includes("instagram.com")) uiState.instagram = m.value;
+      else if (m.value.includes("open.kakao.com")) uiState.openchat = m.value;
+      else uiState.link = m.value;
+    }
+  });
+  
+  return uiState;
+}
+
+function buildProfilePayload(
+  form: Partial<OnboardingFormData>,
+  existingId: string | null
+): StudentProfile {
+  return {
+    id: existingId ?? `user-${Date.now()}`,
+    name: form.name!,
+    department: form.department!,
+    year: parseInt(form.year!),
+    bio: form.bio || undefined,
+    role: form.role as Role,
+    interests: form.interests ?? [],
+    skills: form.skills ?? [],
+    lookingFor: form.lookingFor ?? [],
+    contactMethods: form.contactMethods ?? [],
+    avatarInitial: form.name?.[0],
   };
 }
 
@@ -63,30 +108,29 @@ function ProfileFormFields({
 }) {
   const router = useRouter();
   const [form, setForm] = useState<Partial<OnboardingFormData>>(() => getInitialForm(initialUser));
+  const [contactUI, setContactUI] = useState<ContactUIState>(() => getContactUIFromMethods(initialUser?.contactMethods));
   const [existingId] = useState<string | null>(() => initialUser?.id ?? null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const validationErrors = validateOnboardingForm(form, true);
+    
+    // UI 상태(contactUI)를 payload용 contactMethods로 변환
+    const methods: ContactMethod[] = [];
+    if (contactUI.email.trim()) methods.push({ type: "email", value: contactUI.email.trim() });
+    if (contactUI.instagram.trim()) methods.push({ type: "link", value: contactUI.instagram.trim() });
+    if (contactUI.openchat.trim()) methods.push({ type: "link", value: contactUI.openchat.trim() });
+    if (contactUI.link.trim()) methods.push({ type: "link", value: contactUI.link.trim() });
+
+    const currentForm = { ...form, contactMethods: methods };
+
+    const validationErrors = validateOnboardingForm(currentForm, true);
     if (validationErrors.length > 0) {
       setErrors(Object.fromEntries(validationErrors.map((err) => [err.field, err.message])));
       return;
     }
 
-    const profile: StudentProfile = {
-      id: existingId ?? `user-${Date.now()}`,
-      name: form.name!,
-      department: form.department!,
-      year: parseInt(form.year!),
-      bio: form.bio || undefined,
-      role: form.role as Role,
-      interests: form.interests ?? [],
-      skills: form.skills ?? [],
-      lookingFor: form.lookingFor ?? [],
-      contactMethods: initialUser?.contactMethods ?? [],
-      avatarInitial: form.name?.[0],
-    };
+    const profile = buildProfilePayload(currentForm, existingId);
 
     saveCurrentUser(profile);
     if (!isEdit) initMockAnonymousQuestions(profile.id);
@@ -99,6 +143,11 @@ function ProfileFormFields({
     setErrors((prev) => ({ ...prev, [field]: "" }));
     setForm((prev) => ({ ...prev, [field]: updated }));
   }
+
+  const handleContactChange = (type: keyof ContactUIState, value: string) => {
+    setContactUI(prev => ({ ...prev, [type]: value }));
+    setErrors(prev => ({ ...prev, contactMethods: "" }));
+  };
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
@@ -131,6 +180,47 @@ function ProfileFormFields({
             <option key={y} value={String(y)}>{y}학년</option>
           ))}
         </select>
+      </Field>
+
+      <Field label="연락처 (최소 1개 입력)" required error={errors.contactMethods}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-gray-400 w-16 text-center">이메일</span>
+            <input
+              className="input text-sm py-1.5"
+              placeholder="example@email.com"
+              value={contactUI.email}
+              onChange={(e) => handleContactChange("email", e.target.value)}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-gray-400 w-16 text-center">인스타</span>
+            <input
+              className="input text-sm py-1.5"
+              placeholder="https://instagram.com/..."
+              value={contactUI.instagram}
+              onChange={(e) => handleContactChange("instagram", e.target.value)}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-gray-400 w-16 text-center">오픈채팅</span>
+            <input
+              className="input text-sm py-1.5"
+              placeholder="https://open.kakao.com/..."
+              value={contactUI.openchat}
+              onChange={(e) => handleContactChange("openchat", e.target.value)}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-gray-400 w-16 text-center">기타링크</span>
+            <input
+              className="input text-sm py-1.5"
+              placeholder="https://..."
+              value={contactUI.link}
+              onChange={(e) => handleContactChange("link", e.target.value)}
+            />
+          </div>
+        </div>
       </Field>
 
       <Field label="역할" required error={errors.role}>
@@ -237,7 +327,7 @@ function TagPicker({
               : "border border-gray-300 text-gray-600 hover:border-indigo-300"
           }`}
         >
-          {selected.includes(opt) ? `✓ ${opt}` : opt}
+          {opt}
         </button>
       ))}
     </div>

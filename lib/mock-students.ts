@@ -1,20 +1,3 @@
-// 1번 TODO (Y): 학생 데이터 다양성 검토
-// 입력값: MOCK_STUDENTS 배열
-// 해야 할 일: 전공/role 조합이 고르게 분포되어 있는지 확인,
-//             추천 알고리즘 테스트 시 다양한 매칭 케이스가 나오도록 데이터 보완
-// 완료 기준: 어떤 프로필로 온보딩해도 점수 차이가 있는 추천 결과가 나옴
-
-// 2번 TODO (Y): 데이터 확장성 확보
-// 입력값: 추가될 학생 데이터
-// 해야 할 일: 현재 배열 방식은 유지하되, 나중에 API fetch로 교체 가능하도록
-//             MOCK_STUDENTS를 import하는 파일들이 동일한 인터페이스를 사용 중인지 확인
-// 완료 기준: MOCK_STUDENTS를 fetch 기반으로 교체해도 import하는 파일 수정 불필요
-
-// 3번 TODO (Y): 실제 API 연동 시 이 파일 교체
-// [3번 todo 해결 : 서버 API 연동 시 컴포넌트단 수정 없이 비동기 전환이 가능하도록 fetchStudents 헬퍼 함수 구조 설계 및 선제 도입 완료]
-// 완료 기준: MOCK_STUDENTS를 import하던 파일들이 fetch 기반 데이터 소스로 전환됨
-
-// [2번 todo 해결 : 외부 컴포넌트가 참조하는 데이터 형식을 StudentProfile 인터페이스로 강제하여 추후 비동기 fetch API로 교체해도 깨지지 않는 구조 확보]
 import { StudentProfile } from "@/lib/types";
 
 export const MOCK_STUDENTS: StudentProfile[] = [
@@ -28,7 +11,7 @@ export const MOCK_STUDENTS: StudentProfile[] = [
     interests: ["웹개발", "오픈소스", "게임", "독서"],
     skills: ["React", "Node.js", "TypeScript"],
     lookingFor: ["PM", "디자이너"],
-    contactMethods: [],
+    contactMethods: [{ type: "email", value: "minjun@example.com" }],
     avatarInitial: "김",
   },
   {
@@ -41,7 +24,7 @@ export const MOCK_STUDENTS: StudentProfile[] = [
     interests: ["디자인", "사진", "전시회", "카페투어"],
     skills: ["Figma", "Illustrator", "Photoshop"],
     lookingFor: ["개발자", "마케터"],
-    contactMethods: [],
+    contactMethods: [{ type: "link", value: "https://behance.net/seoyeon" }],
     avatarInitial: "이",
   },
   {
@@ -54,7 +37,7 @@ export const MOCK_STUDENTS: StudentProfile[] = [
     interests: ["스타트업", "마케팅", "독서", "운동"],
     skills: ["기획", "데이터분석", "Excel"],
     lookingFor: ["개발자", "디자이너"],
-    contactMethods: [],
+    contactMethods: [{ type: "link", value: "https://open.kakao.com/o/s1234567" }],
     avatarInitial: "박",
   },
   {
@@ -67,7 +50,7 @@ export const MOCK_STUDENTS: StudentProfile[] = [
     interests: ["AI", "데이터", "수학", "체스"],
     skills: ["Python", "R", "SQL", "PyTorch"],
     lookingFor: ["PM", "개발자"],
-    contactMethods: [],
+    contactMethods: [{ type: "email", value: "ujin@example.com" }],
     avatarInitial: "최",
   },
   {
@@ -80,7 +63,7 @@ export const MOCK_STUDENTS: StudentProfile[] = [
     interests: ["브랜딩", "타이포그래피", "영화", "음악"],
     skills: ["Figma", "After Effects", "Premiere"],
     lookingFor: ["개발자", "PM"],
-    contactMethods: [],
+    contactMethods: [{ type: "link", value: "https://instagram.com/haeun_design" }],
     avatarInitial: "정",
   },
   {
@@ -93,7 +76,7 @@ export const MOCK_STUDENTS: StudentProfile[] = [
     interests: ["모바일", "게임개발", "음악", "운동"],
     skills: ["Swift", "Kotlin", "Flutter"],
     lookingFor: ["디자이너", "PM"],
-    contactMethods: [],
+    contactMethods: [{ type: "email", value: "junhyuk@example.com" }],
     avatarInitial: "강",
   },
   {
@@ -106,7 +89,7 @@ export const MOCK_STUDENTS: StudentProfile[] = [
     interests: ["마케팅", "콘텐츠", "트렌드", "여행"],
     skills: ["콘텐츠기획", "SNS운영", "카피라이팅"],
     lookingFor: ["개발자", "디자이너"],
-    contactMethods: [],
+    contactMethods: [{ type: "link", value: "https://blog.naver.com/chaewon" }],
     avatarInitial: "윤",
   },
   {
@@ -119,10 +102,9 @@ export const MOCK_STUDENTS: StudentProfile[] = [
     interests: ["프로젝트관리", "생산성", "독서", "보드게임"],
     skills: ["Notion", "Jira", "일정관리", "회의진행"],
     lookingFor: ["개발자", "디자이너", "PM"],
-    contactMethods: [],
+    contactMethods: [{ type: "email", value: "sm.oh@example.com" }],
     avatarInitial: "오",
   },
-  // [1번 todo 해결 : 전공/role 조합이 고르게 분포되도록 신규 학생 데이터 4명을 추가하여 매칭 다양성 확보]
   {
     id: "student-9",
     name: "한지우",
@@ -133,7 +115,7 @@ export const MOCK_STUDENTS: StudentProfile[] = [
     interests: ["웹개발", "클라우드", "요리", "드라이브"],
     skills: ["Spring", "Java", "AWS", "Docker"],
     lookingFor: ["PM", "디자이너"],
-    contactMethods: [],
+    contactMethods: [{ type: "link", value: "https://github.com/jiwoo-han" }],
     avatarInitial: "한",
   },
   {
@@ -146,7 +128,7 @@ export const MOCK_STUDENTS: StudentProfile[] = [
     interests: ["영상", "기획", "유튜브", "음악재생"],
     skills: ["기획", "영상편집", "PPT"],
     lookingFor: ["개발자", "마케터"],
-    contactMethods: [],
+    contactMethods: [{ type: "link", value: "https://youtube.com/c/junwoo" }],
     avatarInitial: "서",
   },
   {
@@ -159,7 +141,7 @@ export const MOCK_STUDENTS: StudentProfile[] = [
     interests: ["디자인", "3D아트", "애니메이션", "전시회"],
     skills: ["Blender", "Figma", "Unity"],
     lookingFor: ["개발자", "데이터분석가"],
-    contactMethods: [],
+    contactMethods: [{ type: "link", value: "https://artstation.com/yeeun" }],
     avatarInitial: "신",
   },
   {
@@ -172,20 +154,12 @@ export const MOCK_STUDENTS: StudentProfile[] = [
     interests: ["데이터", "재테크", "축구", "러닝"],
     skills: ["Python", "SQL", "Tableau", "GA4"],
     lookingFor: ["마케터", "PM", "개발자"],
-    contactMethods: [],
+    contactMethods: [{ type: "email", value: "hw.lim@example.com" }],
     avatarInitial: "임",
   },
 ];
 
-// [3번 todo 해결 : 백엔드 실서버 연동 시 코드 변경 최소화를 위한 비동기 fetch API 시뮬레이터 함수 추가 구현]
 export async function fetchStudents(): Promise<StudentProfile[]> {
-  // 실제 API 호출 환경을 모킹하기 위해 의도적인 딜레이(0.5초) 부여
   await new Promise((resolve) => setTimeout(resolve, 500));
-  
-  // 나중에 외부 API 연동 시 아래 주석을 해제하여 사용 가능
-  // const response = await fetch("https://todorak.com");
-  // if (!response.ok) throw new Error("학생 데이터를 불러오는데 실패했습니다.");
-  // return response.json();
-
   return MOCK_STUDENTS;
 }
