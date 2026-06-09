@@ -37,7 +37,7 @@ export default function InboxAnswerPage() {
 
     async function fetchQuestion() {
       try {
-        const res = await getInboxQuestionById(questionId, classId!);
+        const res = await getInboxQuestionById(questionId, classId!, profileId!);
         if (res.data) {
           setQuestion(res.data);
         } else {

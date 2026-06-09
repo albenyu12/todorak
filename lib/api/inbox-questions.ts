@@ -77,15 +77,24 @@ export async function getInboxQuestions(profileId: string, classId: string): Pro
   return data.map(mapInboxQuestion);
 }
 
-export async function getInboxQuestionById(questionId: string, classId: string): Promise<ApiResponse<InboxQuestion>> {
+export async function getInboxQuestionById(
+  questionId: string,
+  classId: string,
+  targetProfileId?: string
+): Promise<ApiResponse<InboxQuestion>> {
   if (!supabase) return { data: null, error: { message: "Supabase client not initialized" } };
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("inbox_questions")
     .select("*")
     .eq("id", questionId)
-    .eq("class_id", classId)
-    .single();
+    .eq("class_id", classId);
+
+  if (targetProfileId) {
+    query = query.eq("target_profile_id", targetProfileId);
+  }
+
+  const { data, error } = await query.single();
 
   if (error || !data) {
     return { data: null, error: { message: error?.message || "Inbox question not found" } };
