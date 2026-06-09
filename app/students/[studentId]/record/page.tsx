@@ -65,7 +65,7 @@ function RecordContent() {
     );
   }
 
-  if (!qid || !qtext) {
+  if (!qtext) {
     return (
       <div className="page-container">
         <p className="text-gray-500">질문 정보가 없습니다.</p>
@@ -89,8 +89,8 @@ function RecordContent() {
         대면으로 들은 답변을 기록해두세요.
       </p>
       <AnswerRecordForm
-        questionId={qid}
-        questionText={decodeURIComponent(qtext)}
+        questionId={qid ?? ""}
+        questionText={qtext}
         targetStudentId={studentId}
         targetStudentName={student.name}
       />

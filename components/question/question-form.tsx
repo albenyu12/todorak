@@ -78,10 +78,10 @@ export default function QuestionForm({ studentId, mode }: QuestionFormProps) {
     }
 
     // 대면 질문 로직 (다음 페이지로 데이터 전달)
-    const params = new URLSearchParams({
-      qid: selectedQuestion?.id ?? "",
-      qtext: finalText,
-    });
+    const params = new URLSearchParams({ qtext: finalText });
+    if (selectedQuestion?.id) {
+      params.set("qid", selectedQuestion.id);
+    }
     router.push(`/students/${studentId}/record?${params.toString()}`);
   }
   // END OF SUBMIT HANDLER
