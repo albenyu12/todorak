@@ -1,12 +1,10 @@
-"use client";
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { OnboardingFormData, StudentProfile, Role, ContactMethod } from "@/lib/types";
 import { validateOnboardingForm } from "@/lib/validators";
-import { saveCurrentUser, getCurrentUser, initMockAnonymousQuestions } from "@/lib/localStorage";
 import { useIsClient } from "@/lib/use-is-client";
 import { getStoredClassSession, setStoredProfileId, withClassCode } from "@/lib/client-session";
+import { createProfile, updateProfile, getProfileById } from "@/lib/api/profiles";
 
 const ROLE_OPTIONS: Role[] = ["개발자", "디자이너", "PM", "마케터", "데이터분석가"];
 const INTEREST_OPTIONS = [
@@ -64,34 +62,45 @@ function getContactUIFromMethods(methods: ContactMethod[] = []): ContactUIState 
   return uiState;
 }
 
-function buildProfilePayload(
-  form: Partial<OnboardingFormData>,
-  existingId: string | null,
-  classId: string
-): StudentProfile {
-  return {
-    id: existingId ?? `user-${Date.now()}`,
-    classId,
-    name: form.name!,
-    department: form.department!,
-    year: parseInt(form.year!),
-    bio: form.bio || undefined,
-    role: form.role as Role,
-    interests: form.interests ?? [],
-    skills: form.skills ?? [],
-    lookingFor: form.lookingFor ?? [],
-    contactMethods: form.contactMethods ?? [],
-    avatarInitial: form.name?.[0],
-  };
-}
-
 export default function ProfileForm() {
   const searchParams = useSearchParams();
   const isEdit = searchParams.get("edit") === "true";
   const isClient = useIsClient();
-  const initialUser = isEdit && isClient ? getCurrentUser() : null;
+  const [initialUser, setInitialUser] = useState<StudentProfile | null>(null);
+  const [loading, setLoading] = useState(isEdit);
 
-  if (isEdit && !isClient) return null;
+  useEffect(() => {
+    if (!isEdit || !isClient) return;
+
+    async function fetchProfile() {
+      const session = getStoredClassSession();
+      const profileId = localStorage.getItem("todorak:profileId");
+
+      if (!session || !profileId) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const res = await getProfileById(profileId, session.classId);
+        if (res.data) {
+          setInitialUser(res.data);
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchProfile();
+  }, [isEdit, isClient]);
+
+  if (isClient && isEdit && loading) {
+    return (
+      <div className="flex justify-center py-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
+      </div>
+    );
+  }
 
   return (
     <ProfileFormFields
@@ -112,10 +121,10 @@ function ProfileFormFields({
   const router = useRouter();
   const [form, setForm] = useState<Partial<OnboardingFormData>>(() => getInitialForm(initialUser));
   const [contactUI, setContactUI] = useState<ContactUIState>(() => getContactUIFromMethods(initialUser?.contactMethods));
-  const [existingId] = useState<string | null>(() => initialUser?.id ?? null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     
     // UI 상태(contactUI)를 payload용 contactMethods로 변환
@@ -133,18 +142,48 @@ function ProfileFormFields({
       return;
     }
 
-    const classSession = getStoredClassSession();
-    if (!classSession) {
-      setErrors({ form: "수업 정보를 확인할 수 없어요. QR 코드나 URL로 다시 접속해 주세요." });
+    const session = getStoredClassSession();
+    if (!session) {
+      alert("클래스 정보를 찾을 수 없습니다. 다시 접속해주세요.");
       return;
     }
 
-    const profile = buildProfilePayload(currentForm, existingId, classSession.classId);
+    setIsSubmitting(true);
 
-    saveCurrentUser(profile);
-    setStoredProfileId(profile.id);
-    if (!isEdit) initMockAnonymousQuestions(profile.id);
-    router.push(withClassCode(isEdit ? "/profile" : "/recommendations", classSession.classCode));
+    try {
+      const profileData = {
+        name: form.name!,
+        department: form.department!,
+        year: parseInt(form.year!),
+        bio: form.bio || null,
+        role: form.role as Role,
+        interests: form.interests ?? [],
+        skills: form.skills ?? [],
+        lookingFor: form.lookingFor ?? [],
+        contactMethods: methods,
+        avatarInitial: form.name?.[0] || null,
+      };
+
+      if (isEdit && initialUser) {
+        const res = await updateProfile(initialUser.id, profileData);
+        if (res.error) throw new Error(res.error.message);
+        router.push(withClassCode("/profile", session.classCode));
+      } else {
+        const res = await createProfile(session.classId, profileData);
+        if (res.error) throw new Error(res.error.message);
+        const resultProfile = res.data;
+        
+        if (resultProfile) {
+          setStoredProfileId(resultProfile.id);
+          router.push(withClassCode("/first-answer", session.classCode));
+        }
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다.";
+      alert(`저장에 실패했습니다: ${message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   function toggleTag(field: "interests" | "skills" | "lookingFor", value: string) {
@@ -165,6 +204,7 @@ function ProfileFormFields({
         <input
           className={`input ${errors.name ? "border-red-400 focus:border-red-400 focus:ring-red-100" : ""}`}
           placeholder="홍길동"
+          disabled={isSubmitting}
           value={form.name ?? ""}
           onChange={(e) => { setErrors((p) => ({ ...p, name: "" })); setForm((p) => ({ ...p, name: e.target.value })); }}
         />
@@ -174,6 +214,7 @@ function ProfileFormFields({
         <input
           className={`input ${errors.department ? "border-red-400 focus:border-red-400 focus:ring-red-100" : ""}`}
           placeholder="컴퓨터공학과"
+          disabled={isSubmitting}
           value={form.department ?? ""}
           onChange={(e) => { setErrors((p) => ({ ...p, department: "" })); setForm((p) => ({ ...p, department: e.target.value })); }}
         />
@@ -182,6 +223,7 @@ function ProfileFormFields({
       <Field label="학년" required error={errors.year}>
         <select
           className={`input ${errors.year ? "border-red-400 focus:border-red-400 focus:ring-red-100" : ""}`}
+          disabled={isSubmitting}
           value={form.year ?? ""}
           onChange={(e) => { setErrors((p) => ({ ...p, year: "" })); setForm((p) => ({ ...p, year: e.target.value })); }}
         >
@@ -239,6 +281,7 @@ function ProfileFormFields({
             <button
               key={opt}
               type="button"
+              disabled={isSubmitting}
               onClick={() => { setForm((p) => ({ ...p, role: opt })); setErrors((p) => ({ ...p, role: "" })); }}
               className={`rounded-full px-3 py-1 text-sm transition-colors ${
                 form.role === opt
@@ -257,6 +300,7 @@ function ProfileFormFields({
           options={SKILL_OPTIONS}
           selected={form.skills ?? []}
           onToggle={(v) => toggleTag("skills", v)}
+          disabled={isSubmitting}
         />
       </Field>
 
@@ -265,6 +309,7 @@ function ProfileFormFields({
           options={INTEREST_OPTIONS}
           selected={form.interests ?? []}
           onToggle={(v) => toggleTag("interests", v)}
+          disabled={isSubmitting}
         />
       </Field>
 
@@ -273,6 +318,7 @@ function ProfileFormFields({
           options={LOOKING_FOR_OPTIONS}
           selected={form.lookingFor ?? []}
           onToggle={(v) => toggleTag("lookingFor", v)}
+          disabled={isSubmitting}
         />
       </Field>
 
@@ -280,6 +326,7 @@ function ProfileFormFields({
         <textarea
           className={`input min-h-[80px] resize-none ${errors.bio ? "border-red-400 focus:border-red-400 focus:ring-red-100" : ""}`}
           placeholder="간단하게 본인을 소개해주세요"
+          disabled={isSubmitting}
           value={form.bio ?? ""}
           onChange={(e) => { setErrors((p) => ({ ...p, bio: "" })); setForm((p) => ({ ...p, bio: e.target.value })); }}
         />
@@ -287,7 +334,12 @@ function ProfileFormFields({
 
       {errors.form && <p className="text-sm text-red-500">{errors.form}</p>}
 
-      <button type="submit" className="btn-primary mt-2">
+      <button 
+        type="submit" 
+        className="btn-primary mt-2 flex items-center justify-center gap-2"
+        disabled={isSubmitting}
+      >
+        {isSubmitting && <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>}
         {isEdit ? "수정 완료" : "추천 받기"}
       </button>
     </form>
@@ -321,10 +373,12 @@ function TagPicker({
   options,
   selected,
   onToggle,
+  disabled,
 }: {
   options: string[];
   selected: string[];
   onToggle: (v: string) => void;
+  disabled?: boolean;
 }) {
   return (
     <div className="flex flex-wrap gap-2">
@@ -332,6 +386,7 @@ function TagPicker({
         <button
           key={opt}
           type="button"
+          disabled={disabled}
           onClick={() => onToggle(opt)}
           className={`rounded-full px-3 py-1 text-sm transition-colors ${
             selected.includes(opt)
