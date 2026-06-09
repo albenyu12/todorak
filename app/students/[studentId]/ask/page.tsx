@@ -78,7 +78,7 @@ export default function AskPage() {
       </Link>
       <h1 className="text-2xl font-bold text-gray-900 mb-1">{modeLabel}</h1>
       <p className="text-sm text-gray-500 mb-6">
-        {student.name}님에게 물어볼 질문을 선택하거나 직접 입력하세요.
+        {student.name}님에게 물어볼 질문을 입력하세요.
       </p>
       <QuestionForm studentId={studentId} mode={questionMode} />
     </div>
