@@ -101,9 +101,10 @@ export default function QuestionForm({ studentId, mode }: QuestionFormProps) {
         </div>
       )}
 
-      {/* 2. 직접 입력 섹션 (익명/대면 공통) */}
       <div>
-        <p className="mb-2 text-sm font-medium text-gray-700">직접 질문 입력</p>
+        {!isOnline && (
+          <p className="mb-2 text-sm font-medium text-gray-700">직접 질문 입력</p>
+        )}
         <Input
           placeholder="질문을 직접 입력하세요"
           value={customText}
