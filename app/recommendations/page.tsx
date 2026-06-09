@@ -44,6 +44,8 @@ function RecommendationsContent() {
 
         if (profileRes.data) setUser(profileRes.data);
 
+        // TODO: Include sent question targets after inbox_questions stores sender_profile_id.
+        // The current data model only supports explored profiles from recorded answers.
         const ids = [...new Set(answers.map((a) => a.targetProfileId))].filter((id): id is string => !!id);
         setExploredIds(ids);
       } catch (err) {
@@ -58,7 +60,7 @@ function RecommendationsContent() {
 
   const recommendations: RecommendationResult[] = user
     ? getRecommendations(user, students, exploredIds)
-    : students.map((s) => ({ student: s, score: 0, matchReasons: [] }));
+    : [];
 
   return (
     <div className="page-container">
@@ -71,6 +73,10 @@ function RecommendationsContent() {
         <div className="flex justify-center py-12">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
         </div>
+      ) : !user ? (
+        <p className="text-center text-gray-400 py-12">
+          내 프로필을 찾을 수 없어 추천을 표시할 수 없습니다.
+        </p>
       ) : (
         <StudentList recommendations={recommendations} />
       )}
