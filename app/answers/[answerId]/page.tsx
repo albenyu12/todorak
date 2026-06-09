@@ -1,15 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getAnswerById } from "@/lib/api/answers";
 import { Answer } from "@/lib/api/types";
-import { getStoredClassId } from "@/lib/client-session";
+import { getStoredClassId, withClassCode } from "@/lib/client-session";
 import { useIsClient } from "@/lib/use-is-client";
 
-export default function AnswerDetailPage() {
+function AnswerDetailContent() {
   const { answerId } = useParams<{ answerId: string }>();
+  const searchParams = useSearchParams();
+  const classCode = searchParams.get("class");
   const isClient = useIsClient();
   const [answer, setAnswer] = useState<Answer | null>(null);
   const [loading, setLoading] = useState(true);
@@ -60,6 +62,11 @@ export default function AnswerDetailPage() {
     );
   }
 
+  const profileHref = withClassCode(
+    `/students/${answer.targetProfileId}?contextAnswerId=${answer.id}`,
+    classCode || ""
+  );
+
   return (
     <div className="page-container">
       <Link
@@ -87,12 +94,24 @@ export default function AnswerDetailPage() {
 
       {answer.targetProfileId && (
         <Link
-          href={`/students/${answer.targetProfileId}`}
+          href={profileHref}
           className="btn-primary mt-4 text-center"
         >
           이 학생 프로필 보기
         </Link>
       )}
     </div>
+  );
+}
+
+export default function AnswerDetailPage() {
+  return (
+    <Suspense fallback={
+      <div className="page-container flex justify-center py-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
+      </div>
+    }>
+      <AnswerDetailContent />
+    </Suspense>
   );
 }

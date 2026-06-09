@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Answer } from "@/lib/types";
 import { QUESTIONS } from "@/lib/questions";
+import { withClassCode } from "@/lib/client-session";
 import Card from "@/components/ui/card";
 import Badge from "@/components/ui/badge";
 import { QuestionCategory } from "@/lib/types";
@@ -8,6 +10,7 @@ import { formatDate } from "@/lib/utils";
 
 interface AnswerCardProps {
   answer: Answer;
+  isHighlighted?: boolean;
 }
 
 // ⚠️ 중요: 이 컴포넌트는 전체 Q&A 리스트에서 사용됩니다.
@@ -30,12 +33,25 @@ const ANSWER_TYPE_LABELS: Record<Answer["answerType"], string> = {
   online: "온라인",
 };
 
-export default function AnswerCard({ answer }: AnswerCardProps) {
+export default function AnswerCard({ answer, isHighlighted }: AnswerCardProps) {
+  const searchParams = useSearchParams();
+  const classCode = searchParams.get("class");
   const question = QUESTIONS.find((q) => q.id === (answer.questionTemplateId || answer.questionId));
 
+  const profileHref = withClassCode(
+    `/students/${answer.targetProfileId || answer.targetStudentId}?contextAnswerId=${answer.id}`,
+    classCode || ""
+  );
+
   return (
-    <Link href={`/students/${answer.targetProfileId || answer.targetStudentId}`}>
-      <Card className="hover:border-indigo-300 hover:shadow-sm transition-all">
+    <Link href={profileHref}>
+      <Card 
+        className={`transition-all ${
+          isHighlighted 
+            ? "border-indigo-500 bg-indigo-50/30 ring-1 ring-indigo-500" 
+            : "hover:border-indigo-300 hover:shadow-sm"
+        }`}
+      >
         <div className="flex items-center gap-1.5 mb-2">
           {question && (
             <Badge variant="category">

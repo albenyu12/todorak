@@ -14,6 +14,7 @@ function StudentProfileContent() {
   const { studentId } = useParams<{ studentId: string }>();
   const searchParams = useSearchParams();
   const classCode = searchParams.get("class");
+  const contextAnswerId = searchParams.get("contextAnswerId");
   const isClient = useIsClient();
   const [student, setStudent] = useState<StudentProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -89,7 +90,7 @@ function StudentProfileContent() {
         </Link>
       </div>
 
-      <StudentAnswers studentId={studentId} />
+      <StudentAnswers studentId={studentId} highlightAnswerId={contextAnswerId} />
     </div>
   );
 }
