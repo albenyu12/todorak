@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { getAnswersByClass } from "@/lib/api/answers";
 import { Answer } from "@/lib/api/types";
@@ -8,7 +8,7 @@ import { getStoredClassId } from "@/lib/client-session";
 import { useIsClient } from "@/lib/use-is-client";
 import AnonymousAnswerList from "@/components/answer/anonymous-answer-list";
 
-export default function AnswersPage() {
+function AnswersContent() {
   const isClient = useIsClient();
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,5 +59,17 @@ export default function AnswersPage() {
         <AnonymousAnswerList answers={answers} />
       )}
     </div>
+  );
+}
+
+export default function AnswersPage() {
+  return (
+    <Suspense fallback={
+      <div className="page-container flex justify-center py-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
+      </div>
+    }>
+      <AnswersContent />
+    </Suspense>
   );
 }

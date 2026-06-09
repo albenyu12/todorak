@@ -4,44 +4,78 @@ import { useEffect, useState, Suspense } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getProfileById } from "@/lib/api/profiles";
-import { StudentProfile } from "@/lib/api/types";
+import { getAnswerById } from "@/lib/api/answers";
+import { StudentProfile, Answer } from "@/lib/api/types";
 import { getStoredClassId, withClassCode } from "@/lib/client-session";
 import { useIsClient } from "@/lib/use-is-client";
 import ProfileCard from "@/components/profile/profile-card";
 import StudentAnswers from "@/components/student/student-answers";
+import AnswerCard from "@/components/answer/answer-card";
 
 function StudentProfileContent() {
   const { studentId } = useParams<{ studentId: string }>();
   const searchParams = useSearchParams();
   const classCode = searchParams.get("class");
+  const contextAnswerId = searchParams.get("contextAnswerId");
   const isClient = useIsClient();
   const [student, setStudent] = useState<StudentProfile | null>(null);
+  const [contextAnswer, setContextAnswer] = useState<Answer | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!isClient) return;
+    let isActive = true;
 
-    async function fetchStudent() {
+    async function fetchData() {
       const classId = getStoredClassId();
+      setLoading(true);
+      setStudent(null);
+      setContextAnswer(null);
+
       if (!classId) {
-        setLoading(false);
+        if (isActive) {
+          setLoading(false);
+        }
         return;
       }
 
       try {
-        const res = await getProfileById(studentId, classId);
-        if (res.data) {
-          setStudent(res.data);
+        const profileRes = await getProfileById(studentId, classId);
+        if (!isActive) return;
+
+        if (!profileRes.data) {
+          return;
+        }
+
+        setStudent(profileRes.data);
+
+        if (!contextAnswerId) return;
+
+        try {
+          const answerRes = await getAnswerById(contextAnswerId, classId);
+          if (!isActive) return;
+
+          if (answerRes.data?.targetProfileId === studentId) {
+            setContextAnswer(answerRes.data);
+          }
+        } catch (err) {
+          console.error("Failed to fetch context answer:", err);
         }
       } catch (err) {
         console.error("Failed to fetch student profile:", err);
       } finally {
-        setLoading(false);
+        if (isActive) {
+          setLoading(false);
+        }
       }
     }
 
-    fetchStudent();
-  }, [isClient, studentId]);
+    fetchData();
+
+    return () => {
+      isActive = false;
+    };
+  }, [isClient, studentId, contextAnswerId]);
 
   if (!isClient) return null;
 
@@ -72,6 +106,17 @@ function StudentProfileContent() {
       >
         ← 목록으로
       </Link>
+
+      {contextAnswer && (
+        <div className="mb-6 animate-in fade-in slide-in-from-top-4 duration-700">
+          <p className="mb-2 text-xs font-bold text-indigo-600 flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-indigo-600"></span>
+            이 Q&A를 통해 이 학생을 발견하셨나요?
+          </p>
+          <AnswerCard answer={contextAnswer} isHighlighted />
+        </div>
+      )}
+
       <ProfileCard profile={student} />
 
       <div className="mt-4 flex flex-col gap-2">
@@ -89,7 +134,7 @@ function StudentProfileContent() {
         </Link>
       </div>
 
-      <StudentAnswers studentId={studentId} />
+      <StudentAnswers studentId={studentId} excludeAnswerId={contextAnswer?.id ?? null} />
     </div>
   );
 }

@@ -9,9 +9,15 @@ import AnswerCard from "@/components/answer/answer-card";
 
 interface StudentAnswersProps {
   studentId: string;
+  highlightAnswerId?: string | null;
+  excludeAnswerId?: string | null;
 }
 
-export default function StudentAnswers({ studentId }: StudentAnswersProps) {
+export default function StudentAnswers({
+  studentId,
+  highlightAnswerId,
+  excludeAnswerId,
+}: StudentAnswersProps) {
   const isClient = useIsClient();
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,7 +34,21 @@ export default function StudentAnswers({ studentId }: StudentAnswersProps) {
 
       try {
         const data = await getAnswersForProfile(studentId, classId);
-        setAnswers(data);
+        const visibleAnswers = excludeAnswerId
+          ? data.filter((answer) => answer.id !== excludeAnswerId)
+          : data;
+
+        // Reorder if highlightAnswerId is present
+        if (highlightAnswerId) {
+          const sorted = [...visibleAnswers].sort((a, b) => {
+            if (a.id === highlightAnswerId) return -1;
+            if (b.id === highlightAnswerId) return 1;
+            return 0;
+          });
+          setAnswers(sorted);
+        } else {
+          setAnswers(visibleAnswers);
+        }
       } catch (err) {
         console.error("Failed to fetch student answers:", err);
       } finally {
@@ -37,7 +57,7 @@ export default function StudentAnswers({ studentId }: StudentAnswersProps) {
     }
 
     fetchAnswers();
-  }, [isClient, studentId]);
+  }, [isClient, studentId, highlightAnswerId, excludeAnswerId]);
 
   if (!isClient || loading || answers.length === 0) return null;
 
@@ -48,7 +68,11 @@ export default function StudentAnswers({ studentId }: StudentAnswersProps) {
       </h2>
       <div className="flex flex-col gap-3">
         {answers.map((answer) => (
-          <AnswerCard key={answer.id} answer={answer} />
+          <AnswerCard
+            key={answer.id}
+            answer={answer}
+            isHighlighted={answer.id === highlightAnswerId}
+          />
         ))}
       </div>
     </div>
