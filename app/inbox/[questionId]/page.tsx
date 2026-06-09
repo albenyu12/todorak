@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { getInboxQuestionById } from "@/lib/api/inbox-questions";
-import { InboxQuestion } from "@/lib/api/types";
 import { createAnswer } from "@/lib/api/answers";
-import { getStoredClassId, getStoredProfileId } from "@/lib/client-session";
+import { InboxQuestion } from "@/lib/api/types";
+import { getStoredProfileId, getStoredClassId } from "@/lib/client-session";
 import { useIsClient } from "@/lib/use-is-client";
 import Button from "@/components/ui/button";
 import Textarea from "@/components/ui/textarea";
@@ -19,25 +19,27 @@ export default function InboxAnswerPage() {
   const [question, setQuestion] = useState<InboxQuestion | null>(null);
   const [answerText, setAnswerText] = useState("");
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
-  
+
   const isClient = useIsClient();
 
   useEffect(() => {
     if (!isClient) return;
 
+    const profileId = getStoredProfileId();
     const classId = getStoredClassId();
-    const pid = getStoredProfileId();
 
-    if (!classId || !pid) {
+    if (!profileId || !classId) {
       router.replace("/onboarding");
       return;
     }
 
     async function fetchQuestion() {
       try {
-        const res = await getInboxQuestionById(questionId, classId!);
+        const profileId = getStoredProfileId();
+        const classId = getStoredClassId();
+        const res = await getInboxQuestionById(questionId, classId!, profileId!);
         if (res.data) {
           setQuestion(res.data);
           if (res.data.isAnswered) {
@@ -47,8 +49,8 @@ export default function InboxAnswerPage() {
           setError(res.error?.message || "질문을 찾을 수 없습니다.");
         }
       } catch (err) {
-        console.error("Fetch question error:", err);
-        setError("질문을 불러오는 중 오류가 발생했습니다.");
+        console.error("Failed to fetch question:", err);
+        setError("질문을 불러오는 데 실패했습니다.");
       } finally {
         setLoading(false);
       }
@@ -61,20 +63,23 @@ export default function InboxAnswerPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!question || !isValid || submitting || question.isAnswered) return;
+    if (!question || !isValid || isSubmitting || question.isAnswered) return;
 
     const classId = getStoredClassId();
-    const pid = getStoredProfileId();
+    const profileId = getStoredProfileId();
 
-    if (!classId || !pid) return;
+    if (!classId || !profileId) {
+      setError("세션 정보를 찾을 수 없습니다. 다시 접속해 주세요.");
+      return;
+    }
 
-    setSubmitting(true);
+    setIsSubmitting(true);
     setError("");
 
     try {
       const res = await createAnswer(classId, {
-        targetProfileId: pid,
-        recorderProfileId: null,
+        targetProfileId: profileId,
+        recorderProfileId: null, // 익명 질문은 기록자가 없음 (또는 시스템)
         inboxQuestionId: question.id,
         questionTemplateId: question.questionTemplateId,
         questionText: question.questionText,
@@ -84,21 +89,21 @@ export default function InboxAnswerPage() {
 
       if (res.error) {
         setError(res.error.message);
+        setIsSubmitting(false);
       } else {
         router.push("/answers");
       }
     } catch (err) {
-      console.error("Submit answer error:", err);
-      setError("답변 저장 중 오류가 발생했습니다.");
-    } finally {
-      setSubmitting(false);
+      console.error("Failed to save answer:", err);
+      setError("답변 저장에 실패했습니다.");
+      setIsSubmitting(false);
     }
   }
 
   if (!isClient || loading) {
     return (
       <div className="page-container flex justify-center py-12">
-        {loading && <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>}
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
       </div>
     );
   }
@@ -138,6 +143,7 @@ export default function InboxAnswerPage() {
             onChange={(e) => setAnswerText(e.target.value)}
             error={answerText.length > 0 && !isValid}
             className="min-h-[120px]"
+            disabled={isSubmitting || question.isAnswered}
           />
           <p className={`mt-1 text-right text-xs ${isValid ? "text-gray-400" : "text-red-400"}`}>
             {answerText.trim().length}자 {!isValid && `(최소 ${MIN_LENGTH}자)`}
@@ -146,8 +152,8 @@ export default function InboxAnswerPage() {
 
         {error && <p className="text-sm text-red-500 text-center">{error}</p>}
 
-        <Button type="submit" fullWidth disabled={!isValid || submitting || question.isAnswered}>
-          {submitting ? "저장 중..." : "답변 저장"}
+        <Button type="submit" fullWidth disabled={!isValid || isSubmitting || question.isAnswered}>
+          {isSubmitting ? "저장 중..." : "답변 저장"}
         </Button>
       </form>
     </div>

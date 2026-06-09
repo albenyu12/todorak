@@ -27,7 +27,7 @@ export default function StudentAnswers({ studentId }: StudentAnswersProps) {
       }
 
       try {
-        const data = await getAnswersForProfile(studentId, classId!);
+        const data = await getAnswersForProfile(studentId, classId);
         setAnswers(data);
       } catch (err) {
         console.error("Failed to fetch student answers:", err);

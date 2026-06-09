@@ -236,3 +236,21 @@ export async function getAnswersForProfile(profileId: string, classId: string): 
 
   return data.map(mapAnswer);
 }
+
+export async function getAnswersRecordedByProfile(profileId: string, classId: string): Promise<Answer[]> {
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from("answers")
+    .select("*")
+    .eq("recorder_profile_id", profileId)
+    .eq("class_id", classId)
+    .order("created_at", { ascending: false });
+
+  if (error || !data) {
+    console.error("Error fetching answers recorded by profile:", error);
+    return [];
+  }
+
+  return data.map(mapAnswer);
+}

@@ -5,7 +5,6 @@ import { validateOnboardingForm } from "@/lib/validators";
 import { useIsClient } from "@/lib/use-is-client";
 import { getStoredClassSession, setStoredProfileId, withClassCode } from "@/lib/client-session";
 import { createProfile, updateProfile, getProfileById } from "@/lib/api/profiles";
-import { createAnswer } from "@/lib/api/answers";
 
 const ROLE_OPTIONS: Role[] = ["개발자", "디자이너", "PM", "마케터", "데이터분석가"];
 const INTEREST_OPTIONS = [
@@ -69,6 +68,7 @@ export default function ProfileForm() {
   const isClient = useIsClient();
   const [initialUser, setInitialUser] = useState<StudentProfile | null>(null);
   const [loading, setLoading] = useState(isEdit);
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     if (!isEdit || !isClient) return;
@@ -78,6 +78,7 @@ export default function ProfileForm() {
       const profileId = localStorage.getItem("todorak:profileId");
 
       if (!session || !profileId) {
+        setLoadError("수정할 프로필 정보를 찾을 수 없습니다. 다시 접속해 주세요.");
         setLoading(false);
         return;
       }
@@ -86,7 +87,11 @@ export default function ProfileForm() {
         const res = await getProfileById(profileId, session.classId);
         if (res.data) {
           setInitialUser(res.data);
+        } else {
+          setLoadError(res.error?.message || "프로필을 불러오지 못했습니다.");
         }
+      } catch {
+        setLoadError("프로필을 불러오지 못했습니다.");
       } finally {
         setLoading(false);
       }
@@ -99,6 +104,16 @@ export default function ProfileForm() {
     return (
       <div className="flex justify-center py-12">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  if (isClient && isEdit && !initialUser) {
+    return (
+      <div className="rounded-xl border border-red-100 bg-red-50 p-4 text-center">
+        <p className="text-sm text-red-600">
+          {loadError || "수정할 프로필을 불러오지 못했습니다."}
+        </p>
       </div>
     );
   }
@@ -149,6 +164,11 @@ function ProfileFormFields({
       return;
     }
 
+    if (isEdit && !initialUser) {
+      setErrors({ form: "수정할 프로필을 불러오지 못했습니다. 다시 접속해 주세요." });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -165,33 +185,20 @@ function ProfileFormFields({
         avatarInitial: form.name?.[0] || null,
       };
 
-      let resultProfile: StudentProfile | null = null;
-
       if (isEdit && initialUser) {
         const res = await updateProfile(initialUser.id, profileData);
         if (res.error) throw new Error(res.error.message);
-        resultProfile = res.data;
+        router.push(withClassCode("/profile", session.classCode));
       } else {
         const res = await createProfile(session.classId, profileData);
         if (res.error) throw new Error(res.error.message);
-        resultProfile = res.data;
-        
+        const resultProfile = res.data;
+
         if (resultProfile) {
           setStoredProfileId(resultProfile.id);
-          
-          await createAnswer(session.classId, {
-            targetProfileId: resultProfile.id,
-            recorderProfileId: resultProfile.id,
-            inboxQuestionId: null,
-            questionTemplateId: null,
-            questionText: "팀 프로젝트에서 나를 어떤 동료로 소개하고 싶나요?",
-            answerText: "열심히 소통하고 맡은 바 최선을 다하는 동료가 되겠습니다!",
-            answerType: "first",
-          });
+          router.push(withClassCode("/first-answer", session.classCode));
         }
       }
-
-      router.push(withClassCode(isEdit ? "/profile" : "/recommendations", session.classCode));
     } catch (err) {
       const message = err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다.";
       alert(`저장에 실패했습니다: ${message}`);
@@ -348,8 +355,8 @@ function ProfileFormFields({
 
       {errors.form && <p className="text-sm text-red-500">{errors.form}</p>}
 
-      <button 
-        type="submit" 
+      <button
+        type="submit"
         className="btn-primary mt-2 flex items-center justify-center gap-2"
         disabled={isSubmitting}
       >

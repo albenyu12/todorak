@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getProfileById } from "@/lib/api/profiles";
@@ -9,7 +9,7 @@ import { getStoredClassId } from "@/lib/client-session";
 import { useIsClient } from "@/lib/use-is-client";
 import QuestionForm from "@/components/question/question-form";
 
-export default function AskPage() {
+function AskContent() {
   const { studentId } = useParams<{ studentId: string }>();
   const searchParams = useSearchParams();
   const mode = searchParams.get("mode");
@@ -78,9 +78,21 @@ export default function AskPage() {
       </Link>
       <h1 className="text-2xl font-bold text-gray-900 mb-1">{modeLabel}</h1>
       <p className="text-sm text-gray-500 mb-6">
-        {student.name}님에게 물어볼 질문을 입력하세요.
+        {student.name}님에게 물어볼 질문을 선택하거나 직접 입력하세요.
       </p>
       <QuestionForm studentId={studentId} mode={questionMode} />
     </div>
+  );
+}
+
+export default function AskPage() {
+  return (
+    <Suspense fallback={
+      <div className="page-container flex justify-center py-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
+      </div>
+    }>
+      <AskContent />
+    </Suspense>
   );
 }

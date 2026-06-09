@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getInboxQuestions } from "@/lib/api/inbox-questions";
 import { InboxQuestion } from "@/lib/api/types";
-import { getStoredClassId, getStoredProfileId } from "@/lib/client-session";
+import { getStoredProfileId, getStoredClassId } from "@/lib/client-session";
 import { useIsClient } from "@/lib/use-is-client";
 
 export default function InboxPage() {
@@ -17,20 +17,21 @@ export default function InboxPage() {
     if (!isClient) return;
 
     async function fetchQuestions() {
-      const classId = getStoredClassId();
       const pid = getStoredProfileId();
+      const cid = getStoredClassId();
       setProfileId(pid);
 
-      if (!classId || !pid) {
+      if (!pid || !cid) {
         setLoading(false);
         return;
       }
 
       try {
-        const data = await getInboxQuestions(pid!, classId!);
+        const data = await getInboxQuestions(pid!, cid!);
+        // branch version logic: show both answered/unanswered
         setQuestions(data);
       } catch (err) {
-        console.error("Failed to fetch questions:", err);
+        console.error("Failed to fetch inbox questions:", err);
       } finally {
         setLoading(false);
       }
@@ -41,6 +42,14 @@ export default function InboxPage() {
 
   if (!isClient) return null;
 
+  if (loading) {
+    return (
+      <div className="page-container flex justify-center py-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
+      </div>
+    );
+  }
+
   if (!profileId) {
     return (
       <div className="page-container flex flex-col items-center text-center py-16 gap-4">
@@ -48,14 +57,6 @@ export default function InboxPage() {
         <Link href="/onboarding" className="btn-primary max-w-xs">
           프로필 만들기
         </Link>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="page-container flex justify-center py-12">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
       </div>
     );
   }

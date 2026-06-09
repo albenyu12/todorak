@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getProfileById } from "@/lib/api/profiles";
@@ -9,12 +9,12 @@ import { getStoredClassId } from "@/lib/client-session";
 import { useIsClient } from "@/lib/use-is-client";
 import AnswerRecordForm from "@/components/question/answer-record-form";
 
-export default function RecordPage() {
+function RecordContent() {
   const { studentId } = useParams<{ studentId: string }>();
   const searchParams = useSearchParams();
   const qid = searchParams.get("qid");
   const qtext = searchParams.get("qtext");
-  
+
   const isClient = useIsClient();
   const [student, setStudent] = useState<StudentProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -65,7 +65,7 @@ export default function RecordPage() {
     );
   }
 
-  if (!qid || !qtext) {
+  if (!qtext) {
     return (
       <div className="page-container">
         <p className="text-gray-500">질문 정보가 없습니다.</p>
@@ -89,11 +89,23 @@ export default function RecordPage() {
         대면으로 들은 답변을 기록해두세요.
       </p>
       <AnswerRecordForm
-        questionId={qid}
-        questionText={decodeURIComponent(qtext)}
+        questionId={qid ?? ""}
+        questionText={qtext}
         targetStudentId={studentId}
         targetStudentName={student.name}
       />
     </div>
+  );
+}
+
+export default function RecordPage() {
+  return (
+    <Suspense fallback={
+      <div className="page-container flex justify-center py-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
+      </div>
+    }>
+      <RecordContent />
+    </Suspense>
   );
 }

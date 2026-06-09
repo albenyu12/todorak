@@ -54,7 +54,7 @@ export interface Answer {
   answerText: string;
   answerType: "first" | "inperson" | "online";
   createdAt?: string;
-  // Legacy fields for compatibility during transition
+  // Legacy fields for compatibility
   questionId?: string;
   targetStudentId?: string;
   recordedAt?: string;

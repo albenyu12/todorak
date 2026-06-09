@@ -41,7 +41,7 @@ export default function AnswersPage() {
     <div className="page-container">
       <h1 className="text-2xl font-bold text-gray-900 mb-1">익명 Q&A</h1>
       <p className="text-sm text-gray-500 mb-6">기록된 대화들을 확인하세요.</p>
-      
+
       {loading ? (
         <div className="flex justify-center py-12">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>

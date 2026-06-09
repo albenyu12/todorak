@@ -36,6 +36,10 @@ export default function QuestionForm({ studentId, mode }: QuestionFormProps) {
 
   const finalText = customText.trim() || selectedQuestion?.text || "";
 
+  /**
+   * BACKEND COLLABORATION: Submit Handler
+   * 이 영역은 백엔드 협업자가 API 연결 시 수정할 부분입니다.
+   */
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!finalText || isSubmitting) {
@@ -65,19 +69,19 @@ export default function QuestionForm({ studentId, mode }: QuestionFormProps) {
           setSubmitted(true);
         }
       } catch (err) {
-        console.error("Create inbox question error:", err);
-        setError("질문을 보내는 중 오류가 발생했습니다.");
+        console.error("Failed to submit question:", err);
+        setError("질문 전송에 실패했습니다.");
       } finally {
         setIsSubmitting(false);
       }
       return;
     }
 
-    // 대면 질문 로직
-    const params = new URLSearchParams({
-      qid: selectedQuestion?.id ?? `custom-${Date.now()}`,
-      qtext: finalText,
-    });
+    // 대면 질문 로직 (다음 페이지로 데이터 전달)
+    const params = new URLSearchParams({ qtext: finalText });
+    if (selectedQuestion?.id) {
+      params.set("qid", selectedQuestion.id);
+    }
     router.push(`/students/${studentId}/record?${params.toString()}`);
   }
 
@@ -131,8 +135,8 @@ export default function QuestionForm({ studentId, mode }: QuestionFormProps) {
 
       {error && <p className="text-xs text-red-500">{error}</p>}
 
-      <Button type="submit" fullWidth disabled={!finalText}>
-        {isOnline ? "질문 남기기" : "이 질문으로 대화하기"}
+      <Button type="submit" fullWidth disabled={!finalText || isSubmitting}>
+        {isSubmitting ? "전송 중..." : (isOnline ? "질문 남기기" : "이 질문으로 대화하기")}
       </Button>
     </form>
   );

@@ -33,9 +33,8 @@ const tabClass = (active: boolean) =>
       : "text-gray-500 hover:bg-gray-100"
   }`;
 
-// questionId로 QUESTIONS에서 카테고리 조회 (직접 입력 질문은 null)
-function getAnswerCategory(answer: Answer): QuestionCategory | null {
-  const qid = answer.questionTemplateId || answer.questionId;
+// qid로 QUESTIONS에서 카테고리 조회 (직접 입력 질문은 null)
+function getAnswerCategory(qid: string | null | undefined): QuestionCategory | null {
   if (!qid) return null;
   return QUESTIONS.find((q) => q.id === qid)?.category ?? null;
 }
@@ -53,7 +52,7 @@ export default function AnonymousAnswerList({ answers }: AnonymousAnswerListProp
     activeCategory === "all"
       ? answers
       : answers.filter(
-          (answer) => getAnswerCategory(answer) === activeCategory,
+          (answer) => getAnswerCategory(answer.questionTemplateId || answer.questionId) === activeCategory,
         );
 
   const sortedAnswers = [...filteredAnswers].sort((a, b) => {

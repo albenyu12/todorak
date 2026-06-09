@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getProfileById } from "@/lib/api/profiles";
@@ -10,7 +10,7 @@ import { useIsClient } from "@/lib/use-is-client";
 import ProfileCard from "@/components/profile/profile-card";
 import StudentAnswers from "@/components/student/student-answers";
 
-export default function StudentProfilePage() {
+function StudentProfileContent() {
   const { studentId } = useParams<{ studentId: string }>();
   const searchParams = useSearchParams();
   const classCode = searchParams.get("class");
@@ -91,5 +91,17 @@ export default function StudentProfilePage() {
 
       <StudentAnswers studentId={studentId} />
     </div>
+  );
+}
+
+export default function StudentProfilePage() {
+  return (
+    <Suspense fallback={
+      <div className="page-container flex justify-center py-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
+      </div>
+    }>
+      <StudentProfileContent />
+    </Suspense>
   );
 }
