@@ -1,19 +1,67 @@
+"use client";
+
+import { useEffect, useState, Suspense } from "react";
+import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { MOCK_STUDENTS } from "@/lib/mock-students";
+import { getProfileById } from "@/lib/api/profiles";
+import { StudentProfile } from "@/lib/api/types";
+import { getStoredClassId } from "@/lib/client-session";
+import { useIsClient } from "@/lib/use-is-client";
 import QuestionForm from "@/components/question/question-form";
-import { notFound } from "next/navigation";
 
-interface Props {
-  params: Promise<{ studentId: string }>;
-  searchParams: Promise<{ mode?: string }>;
-}
+function AskContent() {
+  const { studentId } = useParams<{ studentId: string }>();
+  const searchParams = useSearchParams();
+  const mode = searchParams.get("mode");
+  const isClient = useIsClient();
+  const [student, setStudent] = useState<StudentProfile | null>(null);
+  const [loading, setLoading] = useState(true);
 
-export default async function AskPage({ params, searchParams }: Props) {
-  const { studentId } = await params;
-  const { mode } = await searchParams;
-  const student = MOCK_STUDENTS.find((s) => s.id === studentId);
+  useEffect(() => {
+    if (!isClient) return;
 
-  if (!student) notFound();
+    async function fetchStudent() {
+      const classId = getStoredClassId();
+      if (!classId) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const res = await getProfileById(studentId, classId);
+        if (res.data) {
+          setStudent(res.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch student profile:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchStudent();
+  }, [isClient, studentId]);
+
+  if (!isClient) return null;
+
+  if (loading) {
+    return (
+      <div className="page-container flex justify-center py-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  if (!student) {
+    return (
+      <div className="page-container text-center py-16">
+        <p className="text-gray-400">학생을 찾을 수 없습니다.</p>
+        <Link href="/recommendations" className="btn-primary mt-4 max-w-xs mx-auto">
+          목록으로 돌아가기
+        </Link>
+      </div>
+    );
+  }
 
   const questionMode: "inperson" | "online" =
     mode === "online" ? "online" : "inperson";
@@ -30,9 +78,21 @@ export default async function AskPage({ params, searchParams }: Props) {
       </Link>
       <h1 className="text-2xl font-bold text-gray-900 mb-1">{modeLabel}</h1>
       <p className="text-sm text-gray-500 mb-6">
-        {student.name}님에게 물어볼 질문을 입력하세요.
+        {student.name}님에게 물어볼 질문을 선택하거나 직접 입력하세요.
       </p>
       <QuestionForm studentId={studentId} mode={questionMode} />
     </div>
+  );
+}
+
+export default function AskPage() {
+  return (
+    <Suspense fallback={
+      <div className="page-container flex justify-center py-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
+      </div>
+    }>
+      <AskContent />
+    </Suspense>
   );
 }

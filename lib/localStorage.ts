@@ -81,14 +81,14 @@ function normalizeStudentProfile(value: unknown): StudentProfile | null {
     name,
     department,
     year,
-    bio: typeof bio === "string" && bio.length > 0 ? bio : undefined,
+    bio: typeof bio === "string" && bio.length > 0 ? bio : null,
     role,
     interests: getStringArray(value.interests),
     skills: getStringArray(value.skills),
     lookingFor: getRoleArray(value.lookingFor),
     contactMethods: normalizeContactMethods(value.contactMethods ?? value.contacts),
-    classId: typeof classId === "string" ? classId : undefined,
-    avatarInitial: typeof avatarInitial === "string" ? avatarInitial : undefined,
+    classId: typeof classId === "string" ? classId : "legacy-class",
+    avatarInitial: typeof avatarInitial === "string" ? avatarInitial : null,
   };
 }
 

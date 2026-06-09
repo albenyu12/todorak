@@ -33,9 +33,10 @@ const tabClass = (active: boolean) =>
       : "text-gray-500 hover:bg-gray-100"
   }`;
 
-// questionId로 QUESTIONS에서 카테고리 조회 (직접 입력 질문은 null)
-function getAnswerCategory(questionId: string): QuestionCategory | null {
-  return QUESTIONS.find((q) => q.id === questionId)?.category ?? null;
+// qid로 QUESTIONS에서 카테고리 조회 (직접 입력 질문은 null)
+function getAnswerCategory(qid: string | null | undefined): QuestionCategory | null {
+  if (!qid) return null;
+  return QUESTIONS.find((q) => q.id === qid)?.category ?? null;
 }
 
 export default function AnonymousAnswerList({ answers }: AnonymousAnswerListProps) {
@@ -51,12 +52,13 @@ export default function AnonymousAnswerList({ answers }: AnonymousAnswerListProp
     activeCategory === "all"
       ? answers
       : answers.filter(
-          (answer) => getAnswerCategory(answer.questionId) === activeCategory,
+          (answer) => getAnswerCategory(answer.questionTemplateId || answer.questionId) === activeCategory,
         );
 
   const sortedAnswers = [...filteredAnswers].sort((a, b) => {
-    const diff =
-      new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime();
+    const timeA = new Date(a.createdAt || a.recordedAt || 0).getTime();
+    const timeB = new Date(b.createdAt || b.recordedAt || 0).getTime();
+    const diff = timeA - timeB;
     return sortOrder === "latest" ? -diff : diff;
   });
 
