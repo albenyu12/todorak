@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getStoredProfileId, getStoredClassId } from "@/lib/client-session";
 import { getProfileById } from "@/lib/api/profiles";
-import { getAnswersForProfile } from "@/lib/api/answers";
+import { getAnswersRecordedByProfile } from "@/lib/api/answers";
 import { getInboxQuestions } from "@/lib/api/inbox-questions";
 import { StudentProfile, Answer, InboxQuestion } from "@/lib/api/types";
 import { useIsClient } from "@/lib/use-is-client";
@@ -34,7 +34,7 @@ function ProfileContent() {
       try {
         const [profileRes, answers, questions] = await Promise.all([
           getProfileById(profileId!, classId!),
-          getAnswersForProfile(profileId!, classId!),
+          getAnswersRecordedByProfile(profileId!, classId!),
           getInboxQuestions(profileId!, classId!),
         ]);
 

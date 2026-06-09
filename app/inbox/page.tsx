@@ -1,23 +1,62 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getCurrentUser, getAnonymousQuestionsFor } from "@/lib/localStorage";
+import { getInboxQuestions } from "@/lib/api/inbox-questions";
+import { InboxQuestion } from "@/lib/api/types";
+import { getStoredProfileId, getStoredClassId } from "@/lib/client-session";
 import { useIsClient } from "@/lib/use-is-client";
 
 export default function InboxPage() {
   const isClient = useIsClient();
-  const user = isClient ? getCurrentUser() : null;
-  const questions = user ? [...getAnonymousQuestionsFor(user.id)].reverse() : [];
+  const [questions, setQuestions] = useState<InboxQuestion[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [profileId, setProfileId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isClient) return;
+
+    async function fetchQuestions() {
+      const pid = getStoredProfileId();
+      const cid = getStoredClassId();
+      setProfileId(pid);
+
+      if (!pid || !cid) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const data = await getInboxQuestions(pid!, cid!);
+        // 아직 답변하지 않은 질문만 표시
+        setQuestions(data.filter(q => !q.isAnswered));
+      } catch (err) {
+        console.error("Failed to fetch inbox questions:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchQuestions();
+  }, [isClient]);
 
   if (!isClient) return null;
 
-  if (!user) {
+  if (!profileId) {
     return (
       <div className="page-container flex flex-col items-center text-center py-16 gap-4">
         <p className="text-gray-500">받은 질문을 보려면 프로필을 먼저 만들어주세요.</p>
         <Link href="/onboarding" className="btn-primary max-w-xs">
           프로필 만들기
         </Link>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="page-container flex justify-center py-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
       </div>
     );
   }

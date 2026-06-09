@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
-import { getCurrentUser, getAnswers } from "@/lib/localStorage";
 import { getRecommendations } from "@/lib/recommendation";
-import { getProfilesByClass } from "@/lib/api/profiles";
-import { getStoredClassId } from "@/lib/client-session";
+import { getProfilesByClass, getProfileById } from "@/lib/api/profiles";
+import { getAnswersRecordedByProfile } from "@/lib/api/answers";
+import { getStoredClassId, getStoredProfileId } from "@/lib/client-session";
 import { useIsClient } from "@/lib/use-is-client";
 import StudentList from "@/components/student/student-list";
 import { StudentProfile, RecommendationResult } from "@/lib/types";
@@ -12,36 +12,45 @@ import { StudentProfile, RecommendationResult } from "@/lib/types";
 function RecommendationsContent() {
   const isClient = useIsClient();
   const [students, setStudents] = useState<StudentProfile[]>([]);
+  const [user, setUser] = useState<StudentProfile | null>(null);
+  const [exploredIds, setExploredIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const user = isClient ? getCurrentUser() : null;
-  const classId = isClient ? getStoredClassId() : null;
 
   useEffect(() => {
     if (!isClient) return;
 
-    if (!classId) {
-      const timer = setTimeout(() => setLoading(false), 0);
-      return () => clearTimeout(timer);
-    }
+    async function fetchData() {
+      const classId = getStoredClassId();
+      const profileId = getStoredProfileId();
 
-    async function fetchStudents() {
+      if (!classId || !profileId) {
+        setLoading(false);
+        return;
+      }
+
       try {
-        const data = await getProfilesByClass(classId!);
-        setStudents(data);
+        const [profilesRes, profileRes, answers] = await Promise.all([
+          getProfilesByClass(classId!),
+          getProfileById(profileId!, classId!),
+          getAnswersRecordedByProfile(profileId!, classId!),
+        ]);
+
+        setStudents(profilesRes);
+        if (profileRes.data) {
+          setUser(profileRes.data);
+        }
+
+        const ids = [...new Set(answers.map((a) => a.targetProfileId))].filter((id): id is string => !!id);
+        setExploredIds(ids);
       } catch (err) {
-        console.error("Failed to fetch students:", err);
+        console.error("Failed to fetch data for recommendations:", err);
       } finally {
         setLoading(false);
       }
     }
 
-    fetchStudents();
-  }, [isClient, classId]);
-
-  const exploredIds = user
-    ? [...new Set((getAnswers() || []).filter((a) => a?.answererId === user.id).map((a) => a?.targetStudentId || a?.targetProfileId))].filter((id): id is string => !!id)
-    : [];
+    fetchData();
+  }, [isClient]);
 
   const recommendations: RecommendationResult[] = user
     ? getRecommendations(user, students, exploredIds)
@@ -53,7 +62,7 @@ function RecommendationsContent() {
         <h1 className="text-2xl font-bold text-gray-900">추천 학생</h1>
         <p className="text-sm text-gray-500 mt-0.5">클릭해서 프로필을 확인하세요</p>
       </div>
-      
+
       {loading ? (
         <div className="flex justify-center py-12">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
