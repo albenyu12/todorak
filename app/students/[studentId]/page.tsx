@@ -24,34 +24,57 @@ function StudentProfileContent() {
 
   useEffect(() => {
     if (!isClient) return;
+    let isActive = true;
 
     async function fetchData() {
       const classId = getStoredClassId();
+      setLoading(true);
+      setStudent(null);
+      setContextAnswer(null);
+
       if (!classId) {
-        setLoading(false);
+        if (isActive) {
+          setLoading(false);
+        }
         return;
       }
 
       try {
         const profileRes = await getProfileById(studentId, classId);
-        if (profileRes.data) {
-          setStudent(profileRes.data);
+        if (!isActive) return;
+
+        if (!profileRes.data) {
+          return;
         }
 
-        if (contextAnswerId) {
+        setStudent(profileRes.data);
+
+        if (!contextAnswerId) return;
+
+        try {
           const answerRes = await getAnswerById(contextAnswerId, classId);
-          if (answerRes.data) {
+          if (!isActive) return;
+
+          if (answerRes.data?.targetProfileId === studentId) {
             setContextAnswer(answerRes.data);
           }
+        } catch (err) {
+          console.error("Failed to fetch context answer:", err);
         }
       } catch (err) {
-        console.error("Failed to fetch student profile or context answer:", err);
+        console.error("Failed to fetch student profile:", err);
       } finally {
-        setLoading(false);
+        if (isActive) {
+          setLoading(false);
+        }
       }
     }
 
     fetchData();
+
+    return () => {
+      isActive = false;
+    };
   }, [isClient, studentId, contextAnswerId]);
 
   if (!isClient) return null;

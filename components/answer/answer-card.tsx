@@ -33,22 +33,26 @@ const ANSWER_TYPE_LABELS: Record<Answer["answerType"], string> = {
   online: "온라인",
 };
 
+function buildAnswerContextHref(answer: Answer, classCode: string | null): string {
+  const targetProfileId = answer.targetProfileId || answer.targetStudentId;
+  if (!targetProfileId) return `/answers/${answer.id}`;
+
+  const href = `/students/${targetProfileId}?contextAnswerId=${answer.id}`;
+  return classCode ? withClassCode(href, classCode) : href;
+}
+
 export default function AnswerCard({ answer, isHighlighted }: AnswerCardProps) {
   const searchParams = useSearchParams();
   const classCode = searchParams.get("class");
   const question = QUESTIONS.find((q) => q.id === (answer.questionTemplateId || answer.questionId));
-
-  const profileHref = withClassCode(
-    `/students/${answer.targetProfileId || answer.targetStudentId}?contextAnswerId=${answer.id}`,
-    classCode || ""
-  );
+  const profileHref = buildAnswerContextHref(answer, classCode);
 
   return (
     <Link href={profileHref}>
-      <Card 
+      <Card
         className={`transition-all ${
-          isHighlighted 
-            ? "border-indigo-500 bg-indigo-50/30 ring-1 ring-indigo-500" 
+          isHighlighted
+            ? "border-indigo-500 bg-indigo-50/30 ring-1 ring-indigo-500"
             : "hover:border-indigo-300 hover:shadow-sm"
         }`}
       >

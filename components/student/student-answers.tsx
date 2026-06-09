@@ -29,7 +29,7 @@ export default function StudentAnswers({ studentId, highlightAnswerId }: Student
 
       try {
         const data = await getAnswersForProfile(studentId, classId);
-        
+
         // Reorder if highlightAnswerId is present
         if (highlightAnswerId) {
           const sorted = [...data].sort((a, b) => {
@@ -60,9 +60,9 @@ export default function StudentAnswers({ studentId, highlightAnswerId }: Student
       </h2>
       <div className="flex flex-col gap-3">
         {answers.map((answer) => (
-          <AnswerCard 
-            key={answer.id} 
-            answer={answer} 
+          <AnswerCard
+            key={answer.id}
+            answer={answer}
             isHighlighted={answer.id === highlightAnswerId}
           />
         ))}

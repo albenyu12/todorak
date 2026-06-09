@@ -62,10 +62,9 @@ function AnswerDetailContent() {
     );
   }
 
-  const profileHref = withClassCode(
-    `/students/${answer.targetProfileId}?contextAnswerId=${answer.id}`,
-    classCode || ""
-  );
+  const profileHref = classCode
+    ? withClassCode(`/students/${answer.targetProfileId}?contextAnswerId=${answer.id}`, classCode)
+    : `/students/${answer.targetProfileId}?contextAnswerId=${answer.id}`;
 
   return (
     <div className="page-container">
