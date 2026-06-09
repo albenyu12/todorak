@@ -28,7 +28,7 @@ export default function InboxPage() {
 
       try {
         const data = await getInboxQuestions(pid!, cid!);
-        // branch version logic: show both answered/unanswered
+        // 답변하지 않은 질문을 먼저 보여주되, 답변 완료 질문도 함께 표시합니다.
         setQuestions(data);
       } catch (err) {
         console.error("Failed to fetch inbox questions:", err);
@@ -78,8 +78,8 @@ export default function InboxPage() {
               key={q.id}
               href={`/inbox/${q.id}`}
               className={`rounded-xl border p-4 transition-all ${
-                q.isAnswered 
-                  ? "bg-gray-50 border-gray-100 opacity-60" 
+                q.isAnswered
+                  ? "bg-gray-50 border-gray-100 opacity-60"
                   : "bg-white border-gray-200 hover:border-indigo-300 hover:shadow-sm"
               }`}
             >

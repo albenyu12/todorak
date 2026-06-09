@@ -42,8 +42,8 @@ export default function AnswersPage() {
     <div className="page-container">
       <div className="flex items-center justify-between mb-1">
         <h1 className="text-2xl font-bold text-gray-900">익명 Q&A</h1>
-        <Link 
-          href="/inbox" 
+        <Link
+          href="/inbox"
           className="text-xs font-medium text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full hover:bg-indigo-100 transition-colors"
         >
           나의 질문함 →
