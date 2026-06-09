@@ -42,8 +42,8 @@ export default function QuestionForm({ studentId, mode }: QuestionFormProps) {
    */
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!finalText) {
-      setError("질문을 선택하거나 직접 입력해주세요.");
+    if (!finalText || isSubmitting) {
+      if (!finalText) setError("질문을 선택하거나 직접 입력해주세요.");
       return;
     }
     setError("");
@@ -84,7 +84,6 @@ export default function QuestionForm({ studentId, mode }: QuestionFormProps) {
     }
     router.push(`/students/${studentId}/record?${params.toString()}`);
   }
-  // END OF SUBMIT HANDLER
 
   if (submitted) {
     return (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { getAnswersByClass } from "@/lib/api/answers";
 import { Answer } from "@/lib/api/types";
 import { getStoredClassId } from "@/lib/client-session";
@@ -39,7 +40,15 @@ export default function AnswersPage() {
 
   return (
     <div className="page-container">
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">익명 Q&A</h1>
+      <div className="flex items-center justify-between mb-1">
+        <h1 className="text-2xl font-bold text-gray-900">익명 Q&A</h1>
+        <Link
+          href="/inbox"
+          className="text-xs font-medium text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full hover:bg-indigo-100 transition-colors"
+        >
+          나의 질문함 →
+        </Link>
+      </div>
       <p className="text-sm text-gray-500 mb-6">기록된 대화들을 확인하세요.</p>
 
       {loading ? (

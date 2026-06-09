@@ -28,8 +28,8 @@ export default function InboxPage() {
 
       try {
         const data = await getInboxQuestions(pid!, cid!);
-        // 아직 답변하지 않은 질문만 표시
-        setQuestions(data.filter(q => !q.isAnswered));
+        // 답변하지 않은 질문을 먼저 보여주되, 답변 완료 질문도 함께 표시합니다.
+        setQuestions(data);
       } catch (err) {
         console.error("Failed to fetch inbox questions:", err);
       } finally {
@@ -77,10 +77,21 @@ export default function InboxPage() {
             <Link
               key={q.id}
               href={`/inbox/${q.id}`}
-              className="rounded-xl border border-gray-200 bg-white p-4 hover:border-indigo-300 hover:shadow-sm transition-all"
+              className={`rounded-xl border p-4 transition-all ${
+                q.isAnswered
+                  ? "bg-gray-50 border-gray-100 opacity-60"
+                  : "bg-white border-gray-200 hover:border-indigo-300 hover:shadow-sm"
+              }`}
             >
-              <p className="text-sm font-medium text-gray-800">{q.questionText}</p>
-              <p className="mt-1 text-xs text-gray-400">
+              <div className="flex items-center justify-between mb-1">
+                <p className={`text-sm font-medium ${q.isAnswered ? "text-gray-500" : "text-gray-800"}`}>
+                  {q.questionText}
+                </p>
+                {q.isAnswered && (
+                  <span className="text-[10px] bg-gray-200 text-gray-500 px-1.5 py-0.5 rounded">답변완료</span>
+                )}
+              </div>
+              <p className="text-xs text-gray-400">
                 {new Date(q.createdAt).toLocaleDateString("ko-KR")}
               </p>
             </Link>

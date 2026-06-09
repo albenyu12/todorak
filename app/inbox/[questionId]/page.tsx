@@ -16,8 +16,8 @@ const MIN_LENGTH = 10;
 export default function InboxAnswerPage() {
   const { questionId } = useParams<{ questionId: string }>();
   const router = useRouter();
-  const [answerText, setAnswerText] = useState("");
   const [question, setQuestion] = useState<InboxQuestion | null>(null);
+  const [answerText, setAnswerText] = useState("");
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -37,9 +37,14 @@ export default function InboxAnswerPage() {
 
     async function fetchQuestion() {
       try {
+        const profileId = getStoredProfileId();
+        const classId = getStoredClassId();
         const res = await getInboxQuestionById(questionId, classId!, profileId!);
         if (res.data) {
           setQuestion(res.data);
+          if (res.data.isAnswered) {
+            setError("이미 답변한 질문입니다.");
+          }
         } else {
           setError(res.error?.message || "질문을 찾을 수 없습니다.");
         }
@@ -58,7 +63,7 @@ export default function InboxAnswerPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!question || !isValid || isSubmitting) return;
+    if (!question || !isValid || isSubmitting || question.isAnswered) return;
 
     const classId = getStoredClassId();
     const profileId = getStoredProfileId();
@@ -138,7 +143,7 @@ export default function InboxAnswerPage() {
             onChange={(e) => setAnswerText(e.target.value)}
             error={answerText.length > 0 && !isValid}
             className="min-h-[120px]"
-            disabled={isSubmitting}
+            disabled={isSubmitting || question.isAnswered}
           />
           <p className={`mt-1 text-right text-xs ${isValid ? "text-gray-400" : "text-red-400"}`}>
             {answerText.trim().length}자 {!isValid && `(최소 ${MIN_LENGTH}자)`}
@@ -147,7 +152,7 @@ export default function InboxAnswerPage() {
 
         {error && <p className="text-sm text-red-500 text-center">{error}</p>}
 
-        <Button type="submit" fullWidth disabled={!isValid || isSubmitting}>
+        <Button type="submit" fullWidth disabled={!isValid || isSubmitting || question.isAnswered}>
           {isSubmitting ? "저장 중..." : "답변 저장"}
         </Button>
       </form>

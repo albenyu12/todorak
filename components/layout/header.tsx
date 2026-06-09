@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
-import { getCurrentUser } from "@/lib/localStorage";
+import { getStoredProfileId } from "@/lib/client-session";
 import { useIsClient } from "@/lib/use-is-client";
 
 // TODO (B): 레이아웃 / 반응형 개선
@@ -13,6 +13,7 @@ import { useIsClient } from "@/lib/use-is-client";
 const NAV_LINKS = [
   { href: "/recommendations", label: "추천" },
   { href: "/answers", label: "Q&A" },
+  { href: "/inbox", label: "인박스" },
   { href: "/profile", label: "프로필" },
 ];
 
@@ -59,7 +60,7 @@ export default function Header() {
   const pathname = usePathname();
   const [hasScroll, setHasScroll] = useState(false);
   const isClient = useIsClient();
-  const logoHref = pathname && isClient && getCurrentUser() ? "/recommendations" : "/";
+  const logoHref = pathname && isClient && getStoredProfileId() ? "/recommendations" : "/";
 
   useEffect(() => {
     const handleScroll = () => {

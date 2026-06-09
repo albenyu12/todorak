@@ -25,10 +25,10 @@ export default function AnswerRecordForm({
 }: AnswerRecordFormProps) {
   const router = useRouter();
   const [answerText, setAnswerText] = useState("");
+  const [error, setError] = useState("");
   // 저장 완료 후 메시지 표시 → 잠시 뒤 목록으로 이동
   const [saved, setSaved] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState("");
 
   // 공백만 있는 입력은 0자로 취급 (trim 후 길이)
   const charCount = answerText.trim().length;

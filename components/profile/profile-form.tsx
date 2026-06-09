@@ -100,8 +100,6 @@ export default function ProfileForm() {
     fetchProfile();
   }, [isEdit, isClient]);
 
-  if (isEdit && !isClient) return null;
-
   if (isClient && isEdit && loading) {
     return (
       <div className="flex justify-center py-12">

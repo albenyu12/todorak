@@ -1,25 +1,27 @@
-"use client";
+/**
+ * Mock LocalStorage Manager
+ * Handles simulation of persistence using browser localStorage.
+ * Legacy utility kept for backward compatibility during Step 08 migration.
+ */
 
-import { StudentProfile, Answer, AnonymousQuestion, ContactMethod, Role } from "@/lib/types";
-import { MOCK_ANSWERS } from "@/lib/mock-answers";
-
-function safeParse<T>(raw: string | null): T | null {
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw) as T;
-  } catch {
-    return null;
-  }
-}
+import { StudentProfile, Answer, AnonymousQuestion, Role, ContactMethod } from "./types";
+import { MOCK_ANSWERS } from "./mock-answers";
 
 const KEYS = {
   CURRENT_USER: "todorak_current_user",
   ANSWERS: "todorak_answers",
   ANONYMOUS_QUESTIONS: "todorak_anonymous_questions",
-  SERVER_START_TIME: "todorak_server_start_time",
+  SERVER_START_TIME: "todorak_server_start",
 } as const;
 
-const ROLES: Role[] = ["개발자", "디자이너", "마케터", "데이터분석가", "PM"];
+function safeParse<T>(json: string | null): T | null {
+  if (!json) return null;
+  try {
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -28,6 +30,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function getStringArray(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
 }
+
+const ROLES: Role[] = ["개발자", "디자이너", "마케터", "데이터분석가", "PM"];
 
 function getRoleArray(value: unknown): Role[] {
   return getStringArray(value).filter((item): item is Role => ROLES.includes(item as Role));
@@ -54,16 +58,17 @@ function normalizeContactMethods(value: unknown): ContactMethod[] {
 }
 
 function normalizeStudentProfile(value: unknown): StudentProfile | null {
-  if (!isRecord(value)) return null;
+  if (!value || typeof value !== "object") return null;
 
-  const { id, name, department, year, bio, avatarInitial, classId } = value;
+  const data = value as Record<string, unknown>;
+  const { id, name, department, year, bio, avatarInitial, classId } = data;
   
   // roles(배열) 또는 role(단수) 대응
   let role: Role | null = null;
-  if (typeof value.role === "string" && ROLES.includes(value.role as Role)) {
-    role = value.role as Role;
-  } else if (Array.isArray(value.roles) && value.roles.length > 0 && ROLES.includes(value.roles[0] as Role)) {
-    role = value.roles[0] as Role;
+  if (typeof data.role === "string" && ROLES.includes(data.role as Role)) {
+    role = data.role as Role;
+  } else if (Array.isArray(data.roles) && data.roles.length > 0 && ROLES.includes(data.roles[0] as Role)) {
+    role = data.roles[0] as Role;
   }
 
   if (
@@ -83,10 +88,10 @@ function normalizeStudentProfile(value: unknown): StudentProfile | null {
     year,
     bio: typeof bio === "string" && bio.length > 0 ? bio : null,
     role,
-    interests: getStringArray(value.interests),
-    skills: getStringArray(value.skills),
-    lookingFor: getRoleArray(value.lookingFor),
-    contactMethods: normalizeContactMethods(value.contactMethods ?? value.contacts),
+    interests: getStringArray(data.interests),
+    skills: getStringArray(data.skills),
+    lookingFor: getRoleArray(data.lookingFor),
+    contactMethods: normalizeContactMethods(data.contactMethods ?? data.contacts),
     classId: typeof classId === "string" ? classId : "legacy-class",
     avatarInitial: typeof avatarInitial === "string" ? avatarInitial : null,
   };
