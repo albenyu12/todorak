@@ -23,22 +23,26 @@ function RecommendationsContent() {
       const classId = getStoredClassId();
       const profileId = getStoredProfileId();
 
-      if (!classId || !profileId) {
+      if (!classId) {
         setLoading(false);
         return;
       }
 
       try {
-        const [profilesRes, profileRes, answers] = await Promise.all([
-          getProfilesByClass(classId!),
-          getProfileById(profileId!, classId!),
-          getAnswersRecordedByProfile(profileId!, classId!),
-        ]);
+        const profilesRes = await getProfilesByClass(classId);
 
         setStudents(profilesRes);
-        if (profileRes.data) {
-          setUser(profileRes.data);
+
+        if (!profileId) {
+          return;
         }
+
+        const [profileRes, answers] = await Promise.all([
+          getProfileById(profileId, classId),
+          getAnswersRecordedByProfile(profileId, classId),
+        ]);
+
+        if (profileRes.data) setUser(profileRes.data);
 
         const ids = [...new Set(answers.map((a) => a.targetProfileId))].filter((id): id is string => !!id);
         setExploredIds(ids);

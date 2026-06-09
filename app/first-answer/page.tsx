@@ -3,7 +3,12 @@
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createAnswer } from "@/lib/api/answers";
-import { getStoredClassId, getStoredProfileId, withClassCode } from "@/lib/client-session";
+import {
+  getStoredClassCode,
+  getStoredClassId,
+  getStoredProfileId,
+  withClassCode,
+} from "@/lib/client-session";
 import { useIsClient } from "@/lib/use-is-client";
 import Button from "@/components/ui/button";
 import Textarea from "@/components/ui/textarea";
@@ -53,7 +58,8 @@ function FirstAnswerContent() {
       if (res.error) {
         setError(res.error.message);
       } else {
-        router.push(withClassCode("/recommendations", classCode || ""));
+        const nextClassCode = classCode || getStoredClassCode() || "";
+        router.push(withClassCode("/recommendations", nextClassCode));
       }
     } catch (err) {
       console.error("First answer error:", err);

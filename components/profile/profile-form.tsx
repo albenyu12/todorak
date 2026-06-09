@@ -68,6 +68,7 @@ export default function ProfileForm() {
   const isClient = useIsClient();
   const [initialUser, setInitialUser] = useState<StudentProfile | null>(null);
   const [loading, setLoading] = useState(isEdit);
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     if (!isEdit || !isClient) return;
@@ -77,6 +78,7 @@ export default function ProfileForm() {
       const profileId = localStorage.getItem("todorak:profileId");
 
       if (!session || !profileId) {
+        setLoadError("수정할 프로필 정보를 찾을 수 없습니다. 다시 접속해 주세요.");
         setLoading(false);
         return;
       }
@@ -85,7 +87,11 @@ export default function ProfileForm() {
         const res = await getProfileById(profileId, session.classId);
         if (res.data) {
           setInitialUser(res.data);
+        } else {
+          setLoadError(res.error?.message || "프로필을 불러오지 못했습니다.");
         }
+      } catch {
+        setLoadError("프로필을 불러오지 못했습니다.");
       } finally {
         setLoading(false);
       }
@@ -94,10 +100,22 @@ export default function ProfileForm() {
     fetchProfile();
   }, [isEdit, isClient]);
 
+  if (isEdit && !isClient) return null;
+
   if (isClient && isEdit && loading) {
     return (
       <div className="flex justify-center py-12">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  if (isClient && isEdit && !initialUser) {
+    return (
+      <div className="rounded-xl border border-red-100 bg-red-50 p-4 text-center">
+        <p className="text-sm text-red-600">
+          {loadError || "수정할 프로필을 불러오지 못했습니다."}
+        </p>
       </div>
     );
   }
@@ -145,6 +163,11 @@ function ProfileFormFields({
     const session = getStoredClassSession();
     if (!session) {
       alert("클래스 정보를 찾을 수 없습니다. 다시 접속해주세요.");
+      return;
+    }
+
+    if (isEdit && !initialUser) {
+      setErrors({ form: "수정할 프로필을 불러오지 못했습니다. 다시 접속해 주세요." });
       return;
     }
 
