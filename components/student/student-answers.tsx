@@ -10,9 +10,14 @@ import AnswerCard from "@/components/answer/answer-card";
 interface StudentAnswersProps {
   studentId: string;
   highlightAnswerId?: string | null;
+  excludeAnswerId?: string | null;
 }
 
-export default function StudentAnswers({ studentId, highlightAnswerId }: StudentAnswersProps) {
+export default function StudentAnswers({
+  studentId,
+  highlightAnswerId,
+  excludeAnswerId,
+}: StudentAnswersProps) {
   const isClient = useIsClient();
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,17 +34,20 @@ export default function StudentAnswers({ studentId, highlightAnswerId }: Student
 
       try {
         const data = await getAnswersForProfile(studentId, classId);
+        const visibleAnswers = excludeAnswerId
+          ? data.filter((answer) => answer.id !== excludeAnswerId)
+          : data;
 
         // Reorder if highlightAnswerId is present
         if (highlightAnswerId) {
-          const sorted = [...data].sort((a, b) => {
+          const sorted = [...visibleAnswers].sort((a, b) => {
             if (a.id === highlightAnswerId) return -1;
             if (b.id === highlightAnswerId) return 1;
             return 0;
           });
           setAnswers(sorted);
         } else {
-          setAnswers(data);
+          setAnswers(visibleAnswers);
         }
       } catch (err) {
         console.error("Failed to fetch student answers:", err);
@@ -49,7 +57,7 @@ export default function StudentAnswers({ studentId, highlightAnswerId }: Student
     }
 
     fetchAnswers();
-  }, [isClient, studentId, highlightAnswerId]);
+  }, [isClient, studentId, highlightAnswerId, excludeAnswerId]);
 
   if (!isClient || loading || answers.length === 0) return null;
 

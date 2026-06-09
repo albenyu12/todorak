@@ -134,7 +134,7 @@ function StudentProfileContent() {
         </Link>
       </div>
 
-      <StudentAnswers studentId={studentId} highlightAnswerId={contextAnswerId} />
+      <StudentAnswers studentId={studentId} excludeAnswerId={contextAnswer?.id ?? null} />
     </div>
   );
 }
