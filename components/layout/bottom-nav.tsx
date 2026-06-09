@@ -33,6 +33,15 @@ const NAV_ITEMS = [
     )
   },
   { 
+    href: "/inbox", 
+    label: "인박스", 
+    icon: (active: boolean) => (
+      <svg className="w-6 h-6" fill={active ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0a2 2 0 01-2 2H6a2 2 0 01-2-2m16 0l-3.586 3.586a2 2 0 01-2.828 0L4 13" />
+      </svg>
+    )
+  },
+  { 
     href: "/profile", 
     label: "프로필", 
     icon: (active: boolean) => (
