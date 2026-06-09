@@ -172,7 +172,7 @@ function ProfileFormFields({
         const res = await createProfile(session.classId, profileData);
         if (res.error) throw new Error(res.error.message);
         const resultProfile = res.data;
-        
+
         if (resultProfile) {
           setStoredProfileId(resultProfile.id);
           router.push(withClassCode("/first-answer", session.classCode));
@@ -334,8 +334,8 @@ function ProfileFormFields({
 
       {errors.form && <p className="text-sm text-red-500">{errors.form}</p>}
 
-      <button 
-        type="submit" 
+      <button
+        type="submit"
         className="btn-primary mt-2 flex items-center justify-center gap-2"
         disabled={isSubmitting}
       >

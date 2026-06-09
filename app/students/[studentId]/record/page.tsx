@@ -14,7 +14,7 @@ function RecordContent() {
   const searchParams = useSearchParams();
   const qid = searchParams.get("qid");
   const qtext = searchParams.get("qtext");
-  
+
   const isClient = useIsClient();
   const [student, setStudent] = useState<StudentProfile | null>(null);
   const [loading, setLoading] = useState(true);

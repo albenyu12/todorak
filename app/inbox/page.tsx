@@ -42,6 +42,14 @@ export default function InboxPage() {
 
   if (!isClient) return null;
 
+  if (loading) {
+    return (
+      <div className="page-container flex justify-center py-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
+      </div>
+    );
+  }
+
   if (!profileId) {
     return (
       <div className="page-container flex flex-col items-center text-center py-16 gap-4">
@@ -49,14 +57,6 @@ export default function InboxPage() {
         <Link href="/onboarding" className="btn-primary max-w-xs">
           프로필 만들기
         </Link>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="page-container flex justify-center py-12">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
       </div>
     );
   }

@@ -63,7 +63,10 @@ export default function InboxAnswerPage() {
     const classId = getStoredClassId();
     const profileId = getStoredProfileId();
 
-    if (!classId || !profileId) return;
+    if (!classId || !profileId) {
+      setError("세션 정보를 찾을 수 없습니다. 다시 접속해 주세요.");
+      return;
+    }
 
     setIsSubmitting(true);
     setError("");
@@ -100,6 +103,17 @@ export default function InboxAnswerPage() {
     );
   }
 
+  if (!question) {
+    return (
+      <div className="page-container text-center py-16">
+        <p className="text-gray-400">{error || "질문을 찾을 수 없습니다."}</p>
+        <Link href="/inbox" className="btn-primary mt-4 max-w-xs mx-auto">
+          받은 질문 목록으로
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="page-container">
       <Link
@@ -113,7 +127,7 @@ export default function InboxAnswerPage() {
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="rounded-lg bg-indigo-50 px-4 py-3">
           <p className="text-xs text-indigo-500 font-medium mb-1">질문</p>
-          <p className="text-sm text-indigo-900">{question?.questionText}</p>
+          <p className="text-sm text-indigo-900">{question.questionText}</p>
         </div>
 
         <div>

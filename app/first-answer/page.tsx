@@ -104,9 +104,9 @@ function FirstAnswerContent() {
             </div>
           )}
 
-          <Button 
-            type="submit" 
-            fullWidth 
+          <Button
+            type="submit"
+            fullWidth
             size="lg"
             disabled={!isValid || isSubmitting}
             className="mt-2"
