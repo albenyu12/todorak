@@ -3,6 +3,7 @@ import { StudentProfile } from "@/lib/types";
 export const MOCK_STUDENTS: StudentProfile[] = [
   {
     id: "student-1",
+    classId: "class-1",
     name: "김민준",
     department: "컴퓨터공학과",
     year: 3,
@@ -16,6 +17,7 @@ export const MOCK_STUDENTS: StudentProfile[] = [
   },
   {
     id: "student-2",
+    classId: "class-1",
     name: "이서연",
     department: "산업디자인학과",
     year: 2,
@@ -29,6 +31,7 @@ export const MOCK_STUDENTS: StudentProfile[] = [
   },
   {
     id: "student-3",
+    classId: "class-1",
     name: "박도현",
     department: "경영학과",
     year: 4,
@@ -42,6 +45,7 @@ export const MOCK_STUDENTS: StudentProfile[] = [
   },
   {
     id: "student-4",
+    classId: "class-1",
     name: "최유진",
     department: "데이터사이언스학과",
     year: 3,
@@ -55,6 +59,7 @@ export const MOCK_STUDENTS: StudentProfile[] = [
   },
   {
     id: "student-5",
+    classId: "class-1",
     name: "정하은",
     department: "시각디자인학과",
     year: 2,
@@ -68,6 +73,7 @@ export const MOCK_STUDENTS: StudentProfile[] = [
   },
   {
     id: "student-6",
+    classId: "class-1",
     name: "강준혁",
     department: "컴퓨터공학과",
     year: 2,
@@ -81,6 +87,7 @@ export const MOCK_STUDENTS: StudentProfile[] = [
   },
   {
     id: "student-7",
+    classId: "class-1",
     name: "윤채원",
     department: "경영학과",
     year: 3,
@@ -94,6 +101,7 @@ export const MOCK_STUDENTS: StudentProfile[] = [
   },
   {
     id: "student-8",
+    classId: "class-1",
     name: "오승민",
     department: "산업공학과",
     year: 4,
@@ -107,6 +115,7 @@ export const MOCK_STUDENTS: StudentProfile[] = [
   },
   {
     id: "student-9",
+    classId: "class-1",
     name: "한지우",
     department: "소프트웨어학과",
     year: 3,
@@ -120,6 +129,7 @@ export const MOCK_STUDENTS: StudentProfile[] = [
   },
   {
     id: "student-10",
+    classId: "class-1",
     name: "서준우",
     department: "미디어커뮤니케이션학과",
     year: 4,
@@ -133,6 +143,7 @@ export const MOCK_STUDENTS: StudentProfile[] = [
   },
   {
     id: "student-11",
+    classId: "class-1",
     name: "신예은",
     department: "디지털콘텐츠학과",
     year: 3,
@@ -146,6 +157,7 @@ export const MOCK_STUDENTS: StudentProfile[] = [
   },
   {
     id: "student-12",
+    classId: "class-1",
     name: "임현우",
     department: "통계학과",
     year: 3,

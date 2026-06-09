@@ -1,3 +1,6 @@
-export function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("ko-KR");
+export function formatDate(iso?: string | null): string {
+  if (!iso) return "";
+  const date = new Date(iso);
+  if (isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("ko-KR");
 }

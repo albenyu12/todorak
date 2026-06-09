@@ -1,20 +1,64 @@
 "use client";
 
-import { getCurrentUser, getAnswers } from "@/lib/localStorage";
+import { useEffect, useState, Suspense } from "react";
 import { getRecommendations } from "@/lib/recommendation";
-import { MOCK_STUDENTS } from "@/lib/mock-students";
+import { getProfilesByClass, getProfileById } from "@/lib/api/profiles";
+import { getAnswersRecordedByProfile } from "@/lib/api/answers";
+import { getStoredClassId, getStoredProfileId } from "@/lib/client-session";
 import { useIsClient } from "@/lib/use-is-client";
 import StudentList from "@/components/student/student-list";
+import { StudentProfile, RecommendationResult } from "@/lib/types";
 
-export default function RecommendationsPage() {
+function RecommendationsContent() {
   const isClient = useIsClient();
-  const user = isClient ? getCurrentUser() : null;
-  const exploredIds = user
-    ? [...new Set((getAnswers() || []).filter((a) => a?.answererId === user.id).map((a) => a?.targetStudentId))]
-    : [];
-  const recommendations = user
-    ? getRecommendations(user, MOCK_STUDENTS || [], exploredIds)
-    : (MOCK_STUDENTS || []).map((s) => ({ student: s, score: 0, matchReasons: [] }));
+  const [students, setStudents] = useState<StudentProfile[]>([]);
+  const [user, setUser] = useState<StudentProfile | null>(null);
+  const [exploredIds, setExploredIds] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!isClient) return;
+
+    async function fetchData() {
+      const classId = getStoredClassId();
+      const profileId = getStoredProfileId();
+
+      if (!classId) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const profilesRes = await getProfilesByClass(classId);
+
+        setStudents(profilesRes);
+
+        if (!profileId) {
+          return;
+        }
+
+        const [profileRes, answers] = await Promise.all([
+          getProfileById(profileId, classId),
+          getAnswersRecordedByProfile(profileId, classId),
+        ]);
+
+        if (profileRes.data) setUser(profileRes.data);
+
+        const ids = [...new Set(answers.map((a) => a.targetProfileId))].filter((id): id is string => !!id);
+        setExploredIds(ids);
+      } catch (err) {
+        console.error("Failed to fetch data for recommendations:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, [isClient]);
+
+  const recommendations: RecommendationResult[] = user
+    ? getRecommendations(user, students, exploredIds)
+    : students.map((s) => ({ student: s, score: 0, matchReasons: [] }));
 
   return (
     <div className="page-container">
@@ -22,7 +66,26 @@ export default function RecommendationsPage() {
         <h1 className="text-2xl font-bold text-gray-900">추천 학생</h1>
         <p className="text-sm text-gray-500 mt-0.5">클릭해서 프로필을 확인하세요</p>
       </div>
-      <StudentList recommendations={recommendations || []} />
+
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
+        </div>
+      ) : (
+        <StudentList recommendations={recommendations} />
+      )}
     </div>
+  );
+}
+
+export default function RecommendationsPage() {
+  return (
+    <Suspense fallback={
+      <div className="page-container flex justify-center py-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
+      </div>
+    }>
+      <RecommendationsContent />
+    </Suspense>
   );
 }

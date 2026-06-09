@@ -1,33 +1,67 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import {
-  getCurrentUser,
-  getAnswers,
-  getAnonymousQuestionsFor,
-} from "@/lib/localStorage";
+import { getStoredProfileId, getStoredClassId } from "@/lib/client-session";
+import { getProfileById } from "@/lib/api/profiles";
+import { getAnswersForProfile } from "@/lib/api/answers";
+import { getInboxQuestions } from "@/lib/api/inbox-questions";
+import { StudentProfile, Answer, InboxQuestion } from "@/lib/api/types";
 import { useIsClient } from "@/lib/use-is-client";
 import AnswerCard from "@/components/answer/answer-card";
 
-export default function ProfilePage() {
+function ProfileContent() {
   const router = useRouter();
   const isClient = useIsClient();
-  const user = isClient ? getCurrentUser() : null;
-  const myAnswers = user
-    ? getAnswers().filter((a) => a.targetStudentId === user.id)
-    : [];
-  const pendingQuestions = user ? getAnonymousQuestionsFor(user.id) : [];
+  const [user, setUser] = useState<StudentProfile | null>(null);
+  const [myAnswers, setMyAnswers] = useState<Answer[]>([]);
+  const [pendingQuestions, setPendingQuestions] = useState<InboxQuestion[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!isClient) return;
-    if (!getCurrentUser()) {
+
+    const profileId = getStoredProfileId();
+    const classId = getStoredClassId();
+
+    if (!profileId || !classId) {
       router.replace("/onboarding");
+      return;
     }
+
+    async function fetchData() {
+      try {
+        const [profileRes, answers, questions] = await Promise.all([
+          getProfileById(profileId!, classId!),
+          getAnswersForProfile(profileId!, classId!),
+          getInboxQuestions(profileId!, classId!),
+        ]);
+
+        if (profileRes.data) {
+          setUser(profileRes.data);
+        }
+        setMyAnswers(answers);
+        setPendingQuestions(questions.filter(q => !q.isAnswered));
+      } catch (err) {
+        console.error("Failed to fetch profile data:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
   }, [isClient, router]);
 
-  if (!isClient || !user) return null;
+  if (!isClient || (loading && !user)) {
+    return (
+      <div className="page-container flex justify-center py-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  if (!user) return null;
 
   return (
     <div className="page-container">
@@ -88,5 +122,17 @@ export default function ProfilePage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={
+      <div className="page-container flex justify-center py-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
+      </div>
+    }>
+      <ProfileContent />
+    </Suspense>
   );
 }

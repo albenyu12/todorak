@@ -4,7 +4,8 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { RecommendedQuestion } from "@/lib/types";
 import { QUESTIONS } from "@/lib/questions";
-import { saveAnonymousQuestion } from "@/lib/localStorage";
+import { createInboxQuestion } from "@/lib/api/inbox-questions";
+import { getStoredClassId } from "@/lib/client-session";
 import { useIsClient } from "@/lib/use-is-client";
 import Button from "@/components/ui/button";
 import Input from "@/components/ui/input";
@@ -22,6 +23,7 @@ export default function QuestionForm({ studentId, mode }: QuestionFormProps) {
   const [customText, setCustomText] = useState("");
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isOnline = mode === "online";
 
@@ -37,9 +39,8 @@ export default function QuestionForm({ studentId, mode }: QuestionFormProps) {
   /**
    * BACKEND COLLABORATION: Submit Handler
    * 이 영역은 백엔드 협업자가 API 연결 시 수정할 부분입니다.
-   * 현재는 localStorage를 사용하거나 query parameter로 넘기는 임시 로직입니다.
    */
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!finalText) {
       setError("질문을 선택하거나 직접 입력해주세요.");
@@ -48,23 +49,39 @@ export default function QuestionForm({ studentId, mode }: QuestionFormProps) {
     setError("");
 
     if (isOnline) {
-      // 온라인(익명) 질문 저장 로직 (임시: localStorage)
-      saveAnonymousQuestion({
-        id: `aq-${Date.now()}`,
-        questionId: selectedQuestion?.id ?? `custom-${Date.now()}`,
-        questionText: finalText,
-        targetStudentId: studentId,
-        createdAt: new Date().toISOString(),
-      });
-      setSubmitted(true);
+      const classId = getStoredClassId();
+      if (!classId) {
+        setError("클래스 정보를 찾을 수 없습니다.");
+        return;
+      }
+
+      setIsSubmitting(true);
+      try {
+        const res = await createInboxQuestion(classId, {
+          targetProfileId: studentId,
+          questionTemplateId: selectedQuestion?.id ?? null,
+          questionText: finalText,
+        });
+
+        if (res.error) {
+          setError(res.error.message);
+        } else {
+          setSubmitted(true);
+        }
+      } catch (err) {
+        console.error("Failed to submit question:", err);
+        setError("질문 전송에 실패했습니다.");
+      } finally {
+        setIsSubmitting(false);
+      }
       return;
     }
 
-    // 대면 질문 로직 (임시: 다음 페이지로 데이터 전달)
-    const params = new URLSearchParams({
-      qid: selectedQuestion?.id ?? `custom-${Date.now()}`,
-      qtext: finalText,
-    });
+    // 대면 질문 로직 (다음 페이지로 데이터 전달)
+    const params = new URLSearchParams({ qtext: finalText });
+    if (selectedQuestion?.id) {
+      params.set("qid", selectedQuestion.id);
+    }
     router.push(`/students/${studentId}/record?${params.toString()}`);
   }
   // END OF SUBMIT HANDLER
@@ -119,8 +136,8 @@ export default function QuestionForm({ studentId, mode }: QuestionFormProps) {
 
       {error && <p className="text-xs text-red-500">{error}</p>}
 
-      <Button type="submit" fullWidth disabled={!finalText}>
-        {isOnline ? "질문 남기기" : "이 질문으로 대화하기"}
+      <Button type="submit" fullWidth disabled={!finalText || isSubmitting}>
+        {isSubmitting ? "전송 중..." : (isOnline ? "질문 남기기" : "이 질문으로 대화하기")}
       </Button>
     </form>
   );

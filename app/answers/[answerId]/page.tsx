@@ -1,21 +1,53 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { getAnswerById } from "@/lib/localStorage";
-import { MOCK_STUDENTS } from "@/lib/mock-students";
+import { getAnswerById } from "@/lib/api/answers";
+import { Answer } from "@/lib/api/types";
+import { getStoredClassId } from "@/lib/client-session";
 import { useIsClient } from "@/lib/use-is-client";
 
 export default function AnswerDetailPage() {
   const { answerId } = useParams<{ answerId: string }>();
   const isClient = useIsClient();
-  const answer = isClient ? getAnswerById(answerId) : null;
+  const [answer, setAnswer] = useState<Answer | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const student = answer
-    ? MOCK_STUDENTS.find((s) => s.id === answer.targetStudentId)
-    : null;
+  useEffect(() => {
+    if (!isClient) return;
+
+    async function fetchAnswer() {
+      const classId = getStoredClassId();
+      if (!classId) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const res = await getAnswerById(answerId, classId!);
+        if (res.data) {
+          setAnswer(res.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch answer:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchAnswer();
+  }, [isClient, answerId]);
 
   if (!isClient) return null;
+
+  if (loading) {
+    return (
+      <div className="page-container flex justify-center py-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
+      </div>
+    );
+  }
 
   if (!answer) {
     return (
@@ -49,13 +81,13 @@ export default function AnswerDetailPage() {
         </div>
 
         <p className="mt-4 text-xs text-gray-300">
-          {new Date(answer.recordedAt).toLocaleString("ko-KR")}
+          {new Date(answer.createdAt).toLocaleString("ko-KR")}
         </p>
       </div>
 
-      {student && (
+      {answer.targetProfileId && (
         <Link
-          href={`/students/${student.id}`}
+          href={`/students/${answer.targetProfileId}`}
           className="btn-primary mt-4 text-center"
         >
           이 학생 프로필 보기

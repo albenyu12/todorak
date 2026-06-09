@@ -20,17 +20,19 @@ export type QuestionCategory =
 
 export interface StudentProfile {
   id: string;
+  classId: string;
   name: string;
   department: string;
   year: number;
-  bio?: string;
+  bio: string | null;
   role: Role;
   interests: string[];
   skills: string[];
   lookingFor: Role[];
   contactMethods: ContactMethod[];
-  classId?: string;
-  avatarInitial?: string;
+  avatarInitial: string | null;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Question {
@@ -43,13 +45,20 @@ export type RecommendedQuestion = Question;
 
 export interface Answer {
   id: string;
-  questionId: string;
+  classId?: string;
+  targetProfileId?: string;
+  recorderProfileId?: string | null;
+  inboxQuestionId?: string | null;
+  questionTemplateId?: string | null;
   questionText: string;
   answerText: string;
-  targetStudentId: string;
-  answererId?: string;
-  recordedAt: string;
   answerType: "first" | "inperson" | "online";
+  createdAt?: string;
+  // Legacy fields for compatibility
+  questionId?: string;
+  targetStudentId?: string;
+  recordedAt?: string;
+  answererId?: string;
 }
 
 export interface AnonymousQuestion {
@@ -70,7 +79,7 @@ export interface OnboardingFormData {
   name: string;
   department: string;
   year: string;
-  bio?: string;
+  bio: string | null;
   role: Role | "";
   interests: string[];
   skills: string[];
