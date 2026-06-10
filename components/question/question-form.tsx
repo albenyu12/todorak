@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { RecommendedQuestion } from "@/lib/types";
 import { QUESTIONS } from "@/lib/questions";
 import { createInboxQuestion } from "@/lib/api/inbox-questions";
-import { getStoredClassId } from "@/lib/client-session";
+import { getStoredClassCode, getStoredClassId, withClassCode } from "@/lib/client-session";
 import { useIsClient } from "@/lib/use-is-client";
 import Button from "@/components/ui/button";
 import Input from "@/components/ui/input";
@@ -26,6 +26,8 @@ export default function QuestionForm({ studentId, mode }: QuestionFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isOnline = mode === "online";
+  const classCode = isClient ? getStoredClassCode() : null;
+  const withCurrentClassCode = (path: string) => classCode ? withClassCode(path, classCode) : path;
 
   // 하이드레이션 오류 해결: 클라이언트 사이드에서만 질문을 랜덤하게 추출
   const randomQuestions = useMemo(() => {
@@ -82,7 +84,7 @@ export default function QuestionForm({ studentId, mode }: QuestionFormProps) {
     if (selectedQuestion?.id) {
       params.set("qid", selectedQuestion.id);
     }
-    router.push(`/students/${studentId}/record?${params.toString()}`);
+    router.push(withCurrentClassCode(`/students/${studentId}/record?${params.toString()}`));
   }
 
   if (submitted) {
@@ -90,7 +92,7 @@ export default function QuestionForm({ studentId, mode }: QuestionFormProps) {
       <div className="flex flex-col items-center text-center gap-4 py-8">
         <p className="text-gray-700 font-medium">질문을 남겼어요.</p>
         <p className="text-sm text-gray-400">상대방이 답변하면 Q&amp;A에서 확인할 수 있어요.</p>
-        <Button variant="secondary" onClick={() => router.push(`/students/${studentId}`)}>
+        <Button variant="secondary" onClick={() => router.push(withCurrentClassCode(`/students/${studentId}`))}>
           프로필로 돌아가기
         </Button>
       </div>

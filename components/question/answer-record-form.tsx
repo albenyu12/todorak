@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createAnswer } from "@/lib/api/answers";
-import { getStoredProfileId, getStoredClassId } from "@/lib/client-session";
+import { getStoredClassCode, getStoredProfileId, getStoredClassId, withClassCode } from "@/lib/client-session";
+import { useIsClient } from "@/lib/use-is-client";
 import Button from "@/components/ui/button";
 import Textarea from "@/components/ui/textarea";
 
@@ -29,6 +30,9 @@ export default function AnswerRecordForm({
   // 저장 완료 후 메시지 표시 → 잠시 뒤 목록으로 이동
   const [saved, setSaved] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isClient = useIsClient();
+  const classCode = isClient ? getStoredClassCode() : null;
+  const answersHref = classCode ? withClassCode("/answers", classCode) : "/answers";
 
   // 공백만 있는 입력은 0자로 취급 (trim 후 길이)
   const charCount = answerText.trim().length;
@@ -38,9 +42,9 @@ export default function AnswerRecordForm({
   // 저장 성공 메시지를 잠시 보여 준 뒤 Q&A 목록으로 이동
   useEffect(() => {
     if (!saved) return;
-    const timer = setTimeout(() => router.push("/answers"), SUCCESS_REDIRECT_MS);
+    const timer = setTimeout(() => router.push(answersHref), SUCCESS_REDIRECT_MS);
     return () => clearTimeout(timer);
-  }, [saved, router]);
+  }, [answersHref, saved, router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

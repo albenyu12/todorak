@@ -5,14 +5,15 @@ import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getAnswerById } from "@/lib/api/answers";
 import { Answer } from "@/lib/api/types";
-import { getStoredClassId, withClassCode } from "@/lib/client-session";
+import { getStoredClassCode, getStoredClassId, withClassCode } from "@/lib/client-session";
 import { useIsClient } from "@/lib/use-is-client";
 
 function AnswerDetailContent() {
   const { answerId } = useParams<{ answerId: string }>();
   const searchParams = useSearchParams();
-  const classCode = searchParams.get("class");
   const isClient = useIsClient();
+  const classCode = searchParams.get("class") ?? (isClient ? getStoredClassCode() : null);
+  const answersHref = classCode ? withClassCode("/answers", classCode) : "/answers";
   const [answer, setAnswer] = useState<Answer | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -55,7 +56,7 @@ function AnswerDetailContent() {
     return (
       <div className="page-container text-center py-16">
         <p className="text-gray-400">답변을 찾을 수 없습니다.</p>
-        <Link href="/answers" className="btn-primary mt-4 max-w-xs mx-auto">
+        <Link href={answersHref} className="btn-primary mt-4 max-w-xs mx-auto">
           Q&A 목록으로
         </Link>
       </div>
@@ -69,7 +70,7 @@ function AnswerDetailContent() {
   return (
     <div className="page-container">
       <Link
-        href="/answers"
+        href={answersHref}
         className="mb-4 inline-block text-sm text-gray-400 hover:text-gray-600"
       >
         ← Q&A 목록

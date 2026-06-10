@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getInboxQuestions } from "@/lib/api/inbox-questions";
 import { InboxQuestion } from "@/lib/api/types";
-import { getStoredProfileId, getStoredClassId } from "@/lib/client-session";
+import { getStoredClassCode, getStoredProfileId, getStoredClassId, withClassCode } from "@/lib/client-session";
 import { useIsClient } from "@/lib/use-is-client";
 
 export default function InboxPage() {
@@ -12,6 +12,8 @@ export default function InboxPage() {
   const [questions, setQuestions] = useState<InboxQuestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [profileId, setProfileId] = useState<string | null>(null);
+  const classCode = isClient ? getStoredClassCode() : null;
+  const onboardingHref = classCode ? withClassCode("/onboarding", classCode) : "/onboarding";
 
   useEffect(() => {
     if (!isClient) return;
@@ -54,7 +56,7 @@ export default function InboxPage() {
     return (
       <div className="page-container flex flex-col items-center text-center py-16 gap-4">
         <p className="text-gray-500">받은 질문을 보려면 프로필을 먼저 만들어주세요.</p>
-        <Link href="/onboarding" className="btn-primary max-w-xs">
+        <Link href={onboardingHref} className="btn-primary max-w-xs">
           프로필 만들기
         </Link>
       </div>
@@ -76,7 +78,7 @@ export default function InboxPage() {
           {questions.map((q) => (
             <Link
               key={q.id}
-              href={`/inbox/${q.id}`}
+              href={classCode ? withClassCode(`/inbox/${q.id}`, classCode) : `/inbox/${q.id}`}
               className={`rounded-xl border p-4 transition-all ${
                 q.isAnswered
                   ? "bg-gray-50 border-gray-100 opacity-60"

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
-import { getStoredProfileId } from "@/lib/client-session";
+import { getStoredClassCode, getStoredProfileId, withClassCode } from "@/lib/client-session";
 import { useIsClient } from "@/lib/use-is-client";
 
 // TODO (B): 레이아웃 / 반응형 개선
@@ -20,11 +20,14 @@ const NAV_LINKS = [
 function HeaderNav() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const isClient = useIsClient();
+  const classCode = searchParams.get("class") ?? (isClient ? getStoredClassCode() : null);
   const isEditMode = pathname === "/onboarding" && searchParams.get("edit") === "true";
+  const hrefWithClass = (href: string) => classCode ? withClassCode(href, classCode) : href;
 
   if (pathname === "/") {
     return (
-      <Link href="/onboarding" className="btn-primary text-sm px-4 py-1.5">
+      <Link href={hrefWithClass("/onboarding")} className="btn-primary text-sm px-4 py-1.5">
         로그인
       </Link>
     );
@@ -41,7 +44,7 @@ function HeaderNav() {
         return (
           <Link
             key={link.href}
-            href={link.href}
+            href={hrefWithClass(link.href)}
             className={`px-2 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
               isActive
                 ? "text-indigo-600 bg-indigo-50"
@@ -60,7 +63,9 @@ export default function Header() {
   const pathname = usePathname();
   const [hasScroll, setHasScroll] = useState(false);
   const isClient = useIsClient();
-  const logoHref = pathname && isClient && getStoredProfileId() ? "/recommendations" : "/";
+  const classCode = isClient ? getStoredClassCode() : null;
+  const logoPath = pathname && isClient && getStoredProfileId() ? "/recommendations" : "/";
+  const logoHref = classCode ? withClassCode(logoPath, classCode) : logoPath;
 
   useEffect(() => {
     const handleScroll = () => {

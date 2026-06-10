@@ -6,7 +6,7 @@ import Link from "next/link";
 import { getInboxQuestionById } from "@/lib/api/inbox-questions";
 import { createAnswer } from "@/lib/api/answers";
 import { InboxQuestion } from "@/lib/api/types";
-import { getStoredProfileId, getStoredClassId } from "@/lib/client-session";
+import { getStoredClassCode, getStoredProfileId, getStoredClassId, withClassCode } from "@/lib/client-session";
 import { useIsClient } from "@/lib/use-is-client";
 import Button from "@/components/ui/button";
 import Textarea from "@/components/ui/textarea";
@@ -23,6 +23,10 @@ export default function InboxAnswerPage() {
   const [error, setError] = useState("");
 
   const isClient = useIsClient();
+  const classCode = isClient ? getStoredClassCode() : null;
+  const onboardingHref = classCode ? withClassCode("/onboarding", classCode) : "/onboarding";
+  const inboxHref = classCode ? withClassCode("/inbox", classCode) : "/inbox";
+  const answersHref = classCode ? withClassCode("/answers", classCode) : "/answers";
 
   useEffect(() => {
     if (!isClient) return;
@@ -31,7 +35,7 @@ export default function InboxAnswerPage() {
     const classId = getStoredClassId();
 
     if (!profileId || !classId) {
-      router.replace("/onboarding");
+      router.replace(onboardingHref);
       return;
     }
 
@@ -57,7 +61,7 @@ export default function InboxAnswerPage() {
     }
 
     fetchQuestion();
-  }, [isClient, questionId, router]);
+  }, [isClient, onboardingHref, questionId, router]);
 
   const isValid = answerText.trim().length >= MIN_LENGTH;
 
@@ -91,7 +95,7 @@ export default function InboxAnswerPage() {
         setError(res.error.message);
         setIsSubmitting(false);
       } else {
-        router.push("/answers");
+        router.push(answersHref);
       }
     } catch (err) {
       console.error("Failed to save answer:", err);
@@ -112,7 +116,7 @@ export default function InboxAnswerPage() {
     return (
       <div className="page-container text-center py-16">
         <p className="text-gray-400">{error || "질문을 찾을 수 없습니다."}</p>
-        <Link href="/inbox" className="btn-primary mt-4 max-w-xs mx-auto">
+        <Link href={inboxHref} className="btn-primary mt-4 max-w-xs mx-auto">
           받은 질문 목록으로
         </Link>
       </div>
@@ -122,7 +126,7 @@ export default function InboxAnswerPage() {
   return (
     <div className="page-container">
       <Link
-        href="/inbox"
+        href={inboxHref}
         className="mb-4 inline-block text-sm text-gray-400 hover:text-gray-600"
       >
         ← 받은 질문 목록

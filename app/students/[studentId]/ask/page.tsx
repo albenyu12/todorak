@@ -5,7 +5,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getProfileById } from "@/lib/api/profiles";
 import { StudentProfile } from "@/lib/api/types";
-import { getStoredClassId } from "@/lib/client-session";
+import { getStoredClassCode, getStoredClassId, withClassCode } from "@/lib/client-session";
 import { useIsClient } from "@/lib/use-is-client";
 import QuestionForm from "@/components/question/question-form";
 
@@ -14,6 +14,9 @@ function AskContent() {
   const searchParams = useSearchParams();
   const mode = searchParams.get("mode");
   const isClient = useIsClient();
+  const classCode = searchParams.get("class") ?? (isClient ? getStoredClassCode() : null);
+  const recommendationsHref = classCode ? withClassCode("/recommendations", classCode) : "/recommendations";
+  const profileHref = classCode ? withClassCode(`/students/${studentId}`, classCode) : `/students/${studentId}`;
   const [student, setStudent] = useState<StudentProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -56,7 +59,7 @@ function AskContent() {
     return (
       <div className="page-container text-center py-16">
         <p className="text-gray-400">학생을 찾을 수 없습니다.</p>
-        <Link href="/recommendations" className="btn-primary mt-4 max-w-xs mx-auto">
+        <Link href={recommendationsHref} className="btn-primary mt-4 max-w-xs mx-auto">
           목록으로 돌아가기
         </Link>
       </div>
@@ -71,7 +74,7 @@ function AskContent() {
   return (
     <div className="page-container">
       <Link
-        href={`/students/${studentId}`}
+        href={profileHref}
         className="mb-4 inline-block text-sm text-gray-400 hover:text-gray-600"
       >
         ← {student.name}님 프로필

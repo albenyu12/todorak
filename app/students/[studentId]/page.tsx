@@ -6,7 +6,7 @@ import Link from "next/link";
 import { getProfileById } from "@/lib/api/profiles";
 import { getAnswerById } from "@/lib/api/answers";
 import { StudentProfile, Answer } from "@/lib/api/types";
-import { getStoredClassId, withClassCode } from "@/lib/client-session";
+import { getStoredClassCode, getStoredClassId, withClassCode } from "@/lib/client-session";
 import { useIsClient } from "@/lib/use-is-client";
 import ProfileCard from "@/components/profile/profile-card";
 import StudentAnswers from "@/components/student/student-answers";
@@ -15,9 +15,11 @@ import AnswerCard from "@/components/answer/answer-card";
 function StudentProfileContent() {
   const { studentId } = useParams<{ studentId: string }>();
   const searchParams = useSearchParams();
-  const classCode = searchParams.get("class");
   const contextAnswerId = searchParams.get("contextAnswerId");
   const isClient = useIsClient();
+  const classCode = searchParams.get("class") ?? (isClient ? getStoredClassCode() : null);
+  const recommendationsHref = classCode ? withClassCode("/recommendations", classCode) : "/recommendations";
+  const withCurrentClassCode = (path: string) => classCode ? withClassCode(path, classCode) : path;
   const [student, setStudent] = useState<StudentProfile | null>(null);
   const [contextAnswer, setContextAnswer] = useState<Answer | null>(null);
   const [loading, setLoading] = useState(true);
@@ -91,7 +93,7 @@ function StudentProfileContent() {
     return (
       <div className="page-container text-center py-16">
         <p className="text-gray-400">학생을 찾을 수 없습니다.</p>
-        <Link href="/recommendations" className="btn-primary mt-4 max-w-xs mx-auto">
+        <Link href={recommendationsHref} className="btn-primary mt-4 max-w-xs mx-auto">
           목록으로 돌아가기
         </Link>
       </div>
@@ -101,7 +103,7 @@ function StudentProfileContent() {
   return (
     <div className="page-container">
       <Link
-        href="/recommendations"
+        href={recommendationsHref}
         className="mb-4 inline-block text-sm text-gray-400 hover:text-gray-600"
       >
         ← 목록으로
@@ -121,13 +123,13 @@ function StudentProfileContent() {
 
       <div className="mt-4 flex flex-col gap-2">
         <Link
-          href={withClassCode(`/students/${studentId}/ask?mode=inperson`, classCode || "")}
+          href={withCurrentClassCode(`/students/${studentId}/ask?mode=inperson`)}
           className="btn-primary text-center"
         >
           대면으로 대화하기
         </Link>
         <Link
-          href={withClassCode(`/students/${studentId}/ask?mode=online`, classCode || "")}
+          href={withCurrentClassCode(`/students/${studentId}/ask?mode=online`)}
           className="btn-secondary text-center"
         >
           익명으로 질문 남기기

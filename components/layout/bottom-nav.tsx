@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { getStoredClassCode, withClassCode } from "@/lib/client-session";
+import { useIsClient } from "@/lib/use-is-client";
 
 // TODO (B): 데스크탑에서 숨기기
 // 입력값: Tailwind 반응형 클래스
@@ -54,6 +56,8 @@ const NAV_ITEMS = [
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const isClient = useIsClient();
+  const classCode = isClient ? getStoredClassCode() : null;
 
   if (pathname === "/" || pathname === "/onboarding") return null;
 
@@ -65,7 +69,7 @@ export default function BottomNav() {
           return (
             <Link
               key={item.href}
-              href={item.href}
+              href={classCode ? withClassCode(item.href, classCode) : item.href}
               className={`flex flex-1 flex-col items-center justify-center min-h-[3rem] pb-1 pt-2 text-xs transition-colors ${
                 isActive ? "text-indigo-600" : "text-gray-400"
               }`}

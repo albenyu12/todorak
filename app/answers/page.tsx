@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { getAnswersByClass } from "@/lib/api/answers";
 import { Answer } from "@/lib/api/types";
-import { getStoredClassId } from "@/lib/client-session";
+import { getStoredClassCode, getStoredClassId, withClassCode } from "@/lib/client-session";
 import { useIsClient } from "@/lib/use-is-client";
 import AnonymousAnswerList from "@/components/answer/anonymous-answer-list";
 
@@ -12,6 +12,8 @@ function AnswersContent() {
   const isClient = useIsClient();
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [loading, setLoading] = useState(true);
+  const classCode = isClient ? getStoredClassCode() : null;
+  const inboxHref = classCode ? withClassCode("/inbox", classCode) : "/inbox";
 
   useEffect(() => {
     if (!isClient) return;
@@ -43,7 +45,7 @@ function AnswersContent() {
       <div className="flex items-center justify-between mb-1">
         <h1 className="text-2xl font-bold text-gray-900">익명 Q&A</h1>
         <Link
-          href="/inbox"
+          href={inboxHref}
           className="text-xs font-medium text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full hover:bg-indigo-100 transition-colors"
         >
           나의 질문함 →
