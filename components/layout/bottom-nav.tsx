@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { getStoredClassCode, withClassCode } from "@/lib/client-session";
+import { getStoredClassCode, getStoredProfileId, withClassCode } from "@/lib/client-session";
 import { useIsClient } from "@/lib/use-is-client";
 
 // TODO (B): 데스크탑에서 숨기기
@@ -58,8 +58,10 @@ export default function BottomNav() {
   const pathname = usePathname();
   const isClient = useIsClient();
   const classCode = isClient ? getStoredClassCode() : null;
+  const profileId = isClient ? getStoredProfileId() : null;
 
   if (pathname === "/" || pathname === "/onboarding") return null;
+  if (!profileId) return null;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-10 border-t border-gray-200 bg-white md:hidden pb-[env(safe-area-inset-bottom)]">

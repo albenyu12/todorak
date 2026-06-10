@@ -22,6 +22,7 @@ function HeaderNav() {
   const searchParams = useSearchParams();
   const isClient = useIsClient();
   const classCode = searchParams.get("class") ?? (isClient ? getStoredClassCode() : null);
+  const profileId = isClient ? getStoredProfileId() : null;
   const isEditMode = pathname === "/onboarding" && searchParams.get("edit") === "true";
   const hrefWithClass = (href: string) => classCode ? withClassCode(href, classCode) : href;
 
@@ -34,6 +35,10 @@ function HeaderNav() {
   }
 
   if (pathname === "/onboarding" && !isEditMode) {
+    return null;
+  }
+
+  if (!profileId) {
     return null;
   }
 

@@ -5,7 +5,12 @@ import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getAnswerById } from "@/lib/api/answers";
 import { Answer } from "@/lib/api/types";
-import { getStoredClassCode, getStoredClassId, withClassCode } from "@/lib/client-session";
+import {
+  getStoredClassCode,
+  getStoredClassId,
+  getStoredProfileId,
+  withClassCode,
+} from "@/lib/client-session";
 import { useIsClient } from "@/lib/use-is-client";
 
 function AnswerDetailContent() {
@@ -14,32 +19,52 @@ function AnswerDetailContent() {
   const isClient = useIsClient();
   const classCode = searchParams.get("class") ?? (isClient ? getStoredClassCode() : null);
   const answersHref = classCode ? withClassCode("/answers", classCode) : "/answers";
+  const onboardingHref = classCode ? withClassCode("/onboarding", classCode) : "/onboarding";
   const [answer, setAnswer] = useState<Answer | null>(null);
+  const [hasProfile, setHasProfile] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!isClient) return;
+    let isActive = true;
 
     async function fetchAnswer() {
       const classId = getStoredClassId();
-      if (!classId) {
-        setLoading(false);
+      const profileId = getStoredProfileId();
+
+      setLoading(true);
+      setAnswer(null);
+      setHasProfile(null);
+
+      if (!classId || !profileId) {
+        if (isActive) {
+          setHasProfile(false);
+          setLoading(false);
+        }
         return;
       }
 
+      setHasProfile(true);
+
       try {
         const res = await getAnswerById(answerId, classId!);
-        if (res.data) {
+        if (isActive && res.data) {
           setAnswer(res.data);
         }
       } catch (err) {
         console.error("Failed to fetch answer:", err);
       } finally {
-        setLoading(false);
+        if (isActive) {
+          setLoading(false);
+        }
       }
     }
 
     fetchAnswer();
+
+    return () => {
+      isActive = false;
+    };
   }, [isClient, answerId]);
 
   if (!isClient) return null;
@@ -48,6 +73,19 @@ function AnswerDetailContent() {
     return (
       <div className="page-container flex justify-center py-12">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  if (hasProfile === false) {
+    return (
+      <div className="page-container flex flex-col items-center gap-4 py-16 text-center">
+        <p className="text-gray-500">
+          Q&amp;A를 보려면 프로필을 먼저 만들어주세요.
+        </p>
+        <Link href={onboardingHref} className="btn-primary max-w-xs">
+          프로필 만들기
+        </Link>
       </div>
     );
   }
