@@ -49,7 +49,7 @@ function getInitialForm(user: StudentProfile | null): Partial<OnboardingFormData
 // StudentProfile.contactMethods의 실제 데이터에서 UI 상태로 변환
 function getContactUIFromMethods(methods: ContactMethod[] = []): ContactUIState {
   const uiState: ContactUIState = { email: "", instagram: "", openchat: "", link: "" };
-  
+
   methods.forEach(m => {
     if (m.type === "email") uiState.email = m.value;
     else {
@@ -58,7 +58,7 @@ function getContactUIFromMethods(methods: ContactMethod[] = []): ContactUIState 
       else uiState.link = m.value;
     }
   });
-  
+
   return uiState;
 }
 
@@ -142,7 +142,7 @@ function ProfileFormFields({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    
+
     // UI 상태(contactUI)를 payload용 contactMethods로 변환
     const methods: ContactMethod[] = [];
     if (contactUI.email.trim()) methods.push({ type: "email", value: contactUI.email.trim() });

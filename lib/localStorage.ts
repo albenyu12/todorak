@@ -50,7 +50,7 @@ function normalizeContactMethods(value: unknown): ContactMethod[] {
     if (!allowedTypes.includes(contactType as string) || typeof contactValue !== "string") {
       return [];
     }
-    
+
     // DB 계약 준수: email이 아니면 모두 link로 정규화
     const finalType = (contactType === "email" ? "email" : "link") as ContactMethod["type"];
     return [{ type: finalType, value: contactValue }];
@@ -62,7 +62,7 @@ function normalizeStudentProfile(value: unknown): StudentProfile | null {
 
   const data = value as Record<string, unknown>;
   const { id, name, department, year, bio, avatarInitial, classId } = data;
-  
+
   // roles(배열) 또는 role(단수) 대응
   let role: Role | null = null;
   if (typeof data.role === "string" && ROLES.includes(data.role as Role)) {
