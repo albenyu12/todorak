@@ -164,9 +164,9 @@ select
 
 기대 결과:
 
-- `demo_profiles`: 10
-- `demo_inbox_questions`: 7
-- `demo_answers`: 18
+- `demo_profiles`: 12
+- `demo_inbox_questions`: 10
+- `demo_answers`: 30
 
 ## Handoff
 
