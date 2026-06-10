@@ -1,22 +1,122 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Answer } from "@/lib/types";
-import { getAnswers } from "@/lib/localStorage";
+import { useEffect, useState, Suspense } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { getAnswersByClass } from "@/lib/api/answers";
+import { Answer } from "@/lib/api/types";
+import { withClassCode } from "@/lib/client-session";
+import {
+  resolveProtectedProfileSession,
+  type ProtectedProfileSessionState,
+} from "@/lib/protected-session";
+import { useIsClient } from "@/lib/use-is-client";
 import AnonymousAnswerList from "@/components/answer/anonymous-answer-list";
 
-export default function AnswersPage() {
+function AnswersContent() {
+  const searchParams = useSearchParams();
+  const isClient = useIsClient();
   const [answers, setAnswers] = useState<Answer[]>([]);
+  const [sessionState, setSessionState] = useState<
+    ProtectedProfileSessionState | { status: "loading" }
+  >({ status: "loading" });
+  const [loading, setLoading] = useState(true);
+  const classCode = sessionState.status === "ready" || sessionState.status === "missingProfile"
+    ? sessionState.session.classCode
+    : searchParams.get("class");
+  const inboxHref = classCode ? withClassCode("/inbox", classCode) : "/inbox";
+  const onboardingHref = classCode ? withClassCode("/onboarding", classCode) : "/onboarding";
 
   useEffect(() => {
-    setAnswers(getAnswers().reverse());
-  }, []);
+    if (!isClient) return;
+    let isActive = true;
+
+    async function fetchAnswers() {
+      setLoading(true);
+      setAnswers([]);
+
+      const nextSessionState = await resolveProtectedProfileSession(searchParams);
+      if (!isActive) return;
+
+      setSessionState(nextSessionState);
+
+      if (nextSessionState.status !== "ready") {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const data = await getAnswersByClass(nextSessionState.session.classId);
+        if (isActive) {
+          setAnswers(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch answers:", err);
+      } finally {
+        if (isActive) {
+          setLoading(false);
+        }
+      }
+    }
+
+    fetchAnswers();
+
+    return () => {
+      isActive = false;
+    };
+  }, [isClient, searchParams]);
+
+  if (!isClient) return null;
 
   return (
     <div className="page-container">
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">익명 Q&A</h1>
+      <div className="flex items-center justify-between mb-1">
+        <h1 className="text-2xl font-bold text-gray-900">익명 Q&A</h1>
+        {sessionState.status === "ready" && (
+          <Link
+            href={inboxHref}
+            className="text-xs font-medium text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full hover:bg-indigo-100 transition-colors"
+          >
+            나의 질문함 →
+          </Link>
+        )}
+      </div>
       <p className="text-sm text-gray-500 mb-6">기록된 대화들을 확인하세요.</p>
-      <AnonymousAnswerList answers={answers} />
+
+      {sessionState.status === "invalid" ? (
+        <div className="py-12 text-center">
+          <p className="text-gray-400">
+            {sessionState.classCode} 수업을 찾을 수 없습니다.
+          </p>
+        </div>
+      ) : loading || sessionState.status === "loading" ? (
+        <div className="flex justify-center py-12">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
+        </div>
+      ) : sessionState.status === "missingProfile" ? (
+        <div className="flex flex-col items-center gap-4 py-12 text-center">
+          <p className="text-gray-500">
+            Q&amp;A를 보려면 프로필을 먼저 만들어주세요.
+          </p>
+          <Link href={onboardingHref} className="btn-primary max-w-xs">
+            프로필 만들기
+          </Link>
+        </div>
+      ) : (
+        <AnonymousAnswerList answers={answers} />
+      )}
     </div>
+  );
+}
+
+export default function AnswersPage() {
+  return (
+    <Suspense fallback={
+      <div className="page-container flex justify-center py-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
+      </div>
+    }>
+      <AnswersContent />
+    </Suspense>
   );
 }

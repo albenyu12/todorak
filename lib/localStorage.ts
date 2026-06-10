@@ -1,23 +1,101 @@
-"use client";
+/**
+ * Mock LocalStorage Manager
+ * Handles simulation of persistence using browser localStorage.
+ * Legacy utility kept for backward compatibility during Step 08 migration.
+ */
 
-import { StudentProfile, Answer, AnonymousQuestion } from "@/lib/types";
-import { MOCK_ANSWERS } from "@/lib/mock-answers";
-
-function safeParse<T>(raw: string | null): T | null {
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw) as T;
-  } catch {
-    return null;
-  }
-}
+import { StudentProfile, Answer, AnonymousQuestion, Role, ContactMethod } from "./types";
+import { MOCK_ANSWERS } from "./mock-answers";
 
 const KEYS = {
   CURRENT_USER: "todorak_current_user",
   ANSWERS: "todorak_answers",
   ANONYMOUS_QUESTIONS: "todorak_anonymous_questions",
-  SERVER_START_TIME: "todorak_server_start_time",
+  SERVER_START_TIME: "todorak_server_start",
 } as const;
+
+function safeParse<T>(json: string | null): T | null {
+  if (!json) return null;
+  try {
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function getStringArray(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+}
+
+const ROLES: Role[] = ["개발자", "디자이너", "마케터", "데이터분석가", "PM"];
+
+function getRoleArray(value: unknown): Role[] {
+  return getStringArray(value).filter((item): item is Role => ROLES.includes(item as Role));
+}
+
+function normalizeContactMethods(value: unknown): ContactMethod[] {
+  if (!Array.isArray(value)) return [];
+
+  return value.flatMap((item) => {
+    if (!isRecord(item)) return [];
+
+    const contactType = item.type ?? item.method;
+    const contactValue = item.value;
+
+    const allowedTypes = ["email", "link", "instagram", "openchat"]; // instagram, openchat은 link로 변환 대상
+    if (!allowedTypes.includes(contactType as string) || typeof contactValue !== "string") {
+      return [];
+    }
+
+    // DB 계약 준수: email이 아니면 모두 link로 정규화
+    const finalType = (contactType === "email" ? "email" : "link") as ContactMethod["type"];
+    return [{ type: finalType, value: contactValue }];
+  });
+}
+
+function normalizeStudentProfile(value: unknown): StudentProfile | null {
+  if (!value || typeof value !== "object") return null;
+
+  const data = value as Record<string, unknown>;
+  const { id, name, department, year, bio, avatarInitial, classId } = data;
+
+  // roles(배열) 또는 role(단수) 대응
+  let role: Role | null = null;
+  if (typeof data.role === "string" && ROLES.includes(data.role as Role)) {
+    role = data.role as Role;
+  } else if (Array.isArray(data.roles) && data.roles.length > 0 && ROLES.includes(data.roles[0] as Role)) {
+    role = data.roles[0] as Role;
+  }
+
+  if (
+    typeof id !== "string" ||
+    typeof name !== "string" ||
+    typeof department !== "string" ||
+    typeof year !== "number" ||
+    !role
+  ) {
+    return null;
+  }
+
+  return {
+    id,
+    name,
+    department,
+    year,
+    bio: typeof bio === "string" && bio.length > 0 ? bio : null,
+    role,
+    interests: getStringArray(data.interests),
+    skills: getStringArray(data.skills),
+    lookingFor: getRoleArray(data.lookingFor),
+    contactMethods: normalizeContactMethods(data.contactMethods ?? data.contacts),
+    classId: typeof classId === "string" ? classId : "legacy-class",
+    avatarInitial: typeof avatarInitial === "string" ? avatarInitial : null,
+  };
+}
 
 export function resetIfServerRestarted(): void {
   if (typeof window === "undefined") return;
@@ -36,7 +114,7 @@ export function saveCurrentUser(profile: StudentProfile): void {
 
 export function getCurrentUser(): StudentProfile | null {
   if (typeof window === "undefined") return null;
-  return safeParse<StudentProfile>(localStorage.getItem(KEYS.CURRENT_USER));
+  return normalizeStudentProfile(safeParse<unknown>(localStorage.getItem(KEYS.CURRENT_USER)));
 }
 
 export function clearCurrentUser(): void {
@@ -51,10 +129,7 @@ export function saveAnswer(answer: Answer): void {
 
 export function getAnswers(): Answer[] {
   if (typeof window === "undefined") return [];
-  
-  // [1번 todo 해결 : getAnswers 호출 시점에 initMockAnswers를 트리거하여 첫 방문자가 /answers 페이지에 진입했을 때 데이터가 자동으로 심기도록 보장]
   initMockAnswers();
-  
   return safeParse<Answer[]>(localStorage.getItem(KEYS.ANSWERS)) ?? [];
 }
 
@@ -66,8 +141,6 @@ export function initMockAnswers(): void {
   if (typeof window === "undefined") return;
   const parsed = safeParse<Answer[]>(localStorage.getItem(KEYS.ANSWERS));
   if (parsed) {
-    // 구버전 데이터(answerType 없음)면 재시딩
-    // [빌드 에러 해결: parsed는 배열이므로 첫 번째 아이템인 parsed[0].answerType의 유무를 체크하도록 정상 수정]
     if (parsed.length > 0 && !parsed[0].answerType) {
       localStorage.removeItem(KEYS.ANSWERS);
     } else {

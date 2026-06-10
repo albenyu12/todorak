@@ -1,32 +1,69 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { StudentProfile, Answer, AnonymousQuestion } from "@/lib/types";
-import {
-  getCurrentUser,
-  getAnswers,
-  getAnonymousQuestionsFor,
-} from "@/lib/localStorage";
+import { getStoredClassCode, getStoredProfileId, getStoredClassId, withClassCode } from "@/lib/client-session";
+import { getProfileById } from "@/lib/api/profiles";
+import { getAnswersForProfile } from "@/lib/api/answers";
+import { getInboxQuestions } from "@/lib/api/inbox-questions";
+import { StudentProfile, Answer, InboxQuestion } from "@/lib/api/types";
+import { useIsClient } from "@/lib/use-is-client";
 import AnswerCard from "@/components/answer/answer-card";
 
-export default function ProfilePage() {
+function ProfileContent() {
   const router = useRouter();
+  const isClient = useIsClient();
   const [user, setUser] = useState<StudentProfile | null>(null);
   const [myAnswers, setMyAnswers] = useState<Answer[]>([]);
-  const [pendingQuestions, setPendingQuestions] = useState<AnonymousQuestion[]>([]);
+  const [pendingQuestions, setPendingQuestions] = useState<InboxQuestion[]>([]);
+  const [loading, setLoading] = useState(true);
+  const classCode = isClient ? getStoredClassCode() : null;
+  const onboardingHref = classCode ? withClassCode("/onboarding", classCode) : "/onboarding";
+  const editHref = classCode ? withClassCode("/onboarding?edit=true", classCode) : "/onboarding?edit=true";
+  const inboxHref = classCode ? withClassCode("/inbox", classCode) : "/inbox";
 
   useEffect(() => {
-    const currentUser = getCurrentUser();
-    if (!currentUser) {
-      router.replace("/onboarding");
+    if (!isClient) return;
+
+    const profileId = getStoredProfileId();
+    const classId = getStoredClassId();
+
+    if (!profileId || !classId) {
+      router.replace(onboardingHref);
       return;
     }
-    setUser(currentUser);
-    setMyAnswers(getAnswers().filter((a) => a.targetStudentId === currentUser.id));
-    setPendingQuestions(getAnonymousQuestionsFor(currentUser.id));
-  }, [router]);
+
+    async function fetchData() {
+      try {
+        const [profileRes, answers, questions] = await Promise.all([
+          getProfileById(profileId!, classId!),
+          getAnswersForProfile(profileId!, classId!),
+          getInboxQuestions(profileId!, classId!),
+        ]);
+
+        if (profileRes.data) {
+          setUser(profileRes.data);
+        }
+        setMyAnswers(answers);
+        setPendingQuestions(questions.filter(q => !q.isAnswered));
+      } catch (err) {
+        console.error("Failed to fetch profile data:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, [isClient, onboardingHref, router]);
+
+  if (!isClient || (loading && !user)) {
+    return (
+      <div className="page-container flex justify-center py-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
+      </div>
+    );
+  }
 
   if (!user) return null;
 
@@ -34,7 +71,7 @@ export default function ProfilePage() {
     <div className="page-container">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">내 프로필</h1>
-        <Link href="/onboarding?edit=true" className="text-sm text-indigo-600 hover:underline">
+        <Link href={editHref} className="text-sm text-indigo-600 hover:underline">
           수정
         </Link>
       </div>
@@ -52,9 +89,6 @@ export default function ProfilePage() {
               <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">
                 {user.role}
               </span>
-              <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
-                {user.collaborationStyle}
-              </span>
             </div>
           </div>
         </div>
@@ -64,7 +98,7 @@ export default function ProfilePage() {
       </div>
 
       {/* 받은 질문 요약 */}
-      <Link href="/inbox">
+      <Link href={inboxHref}>
         <div className="rounded-xl border border-indigo-100 bg-indigo-50 p-4 mb-6 flex items-center justify-between hover:bg-indigo-100 transition-colors">
           <div>
             <p className="text-sm font-semibold text-indigo-800">받은 질문</p>
@@ -92,5 +126,17 @@ export default function ProfilePage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={
+      <div className="page-container flex justify-center py-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
+      </div>
+    }>
+      <ProfileContent />
+    </Suspense>
   );
 }

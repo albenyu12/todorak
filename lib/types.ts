@@ -1,12 +1,14 @@
 export type Role =
   | "개발자"
   | "디자이너"
-
   | "마케터"
   | "데이터분석가"
   | "PM";
 
-export type CollaborationStyle = "리더형" | "서포터형" | "독립형" | "협력형";
+export interface ContactMethod {
+  type: "email" | "link";
+  value: string;
+}
 
 export type QuestionCategory =
   | "collaboration"
@@ -18,16 +20,19 @@ export type QuestionCategory =
 
 export interface StudentProfile {
   id: string;
+  classId: string;
   name: string;
   department: string;
   year: number;
-  bio?: string;
+  bio: string | null;
   role: Role;
-  collaborationStyle?: CollaborationStyle;
   interests: string[];
   skills: string[];
   lookingFor: Role[];
-  avatarInitial?: string;
+  contactMethods: ContactMethod[];
+  avatarInitial: string | null;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Question {
@@ -36,17 +41,24 @@ export interface Question {
   category: QuestionCategory;
 }
 
-export interface RecommendedQuestion extends Question {}
+export type RecommendedQuestion = Question;
 
 export interface Answer {
   id: string;
-  questionId: string;
+  classId?: string;
+  targetProfileId?: string;
+  recorderProfileId?: string | null;
+  inboxQuestionId?: string | null;
+  questionTemplateId?: string | null;
   questionText: string;
   answerText: string;
-  targetStudentId: string;
+  answerType: "first" | "inperson" | "online";
+  createdAt?: string;
+  // Legacy fields for compatibility
+  questionId?: string;
+  targetStudentId?: string;
+  recordedAt?: string;
   answererId?: string;
-  recordedAt: string;
-  answerType: "inperson" | "online";
 }
 
 export interface AnonymousQuestion {
@@ -67,10 +79,10 @@ export interface OnboardingFormData {
   name: string;
   department: string;
   year: string;
-  bio?: string;
+  bio: string | null;
   role: Role | "";
-  collaborationStyle: CollaborationStyle | "";
   interests: string[];
   skills: string[];
   lookingFor: Role[];
+  contactMethods: ContactMethod[];
 }

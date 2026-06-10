@@ -2,30 +2,61 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { AnonymousQuestion } from "@/lib/types";
-import { getCurrentUser, getAnonymousQuestionsFor } from "@/lib/localStorage";
+import { getInboxQuestions } from "@/lib/api/inbox-questions";
+import { InboxQuestion } from "@/lib/api/types";
+import { getStoredClassCode, getStoredProfileId, getStoredClassId, withClassCode } from "@/lib/client-session";
+import { useIsClient } from "@/lib/use-is-client";
 
 export default function InboxPage() {
-  const [questions, setQuestions] = useState<AnonymousQuestion[]>([]);
-  const [hasUser, setHasUser] = useState<boolean | null>(null);
+  const isClient = useIsClient();
+  const [questions, setQuestions] = useState<InboxQuestion[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [profileId, setProfileId] = useState<string | null>(null);
+  const classCode = isClient ? getStoredClassCode() : null;
+  const onboardingHref = classCode ? withClassCode("/onboarding", classCode) : "/onboarding";
 
   useEffect(() => {
-    const user = getCurrentUser();
-    if (!user) {
-      setHasUser(false);
-      return;
+    if (!isClient) return;
+
+    async function fetchQuestions() {
+      const pid = getStoredProfileId();
+      const cid = getStoredClassId();
+      setProfileId(pid);
+
+      if (!pid || !cid) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const data = await getInboxQuestions(pid!, cid!);
+        // 답변하지 않은 질문을 먼저 보여주되, 답변 완료 질문도 함께 표시합니다.
+        setQuestions(data);
+      } catch (err) {
+        console.error("Failed to fetch inbox questions:", err);
+      } finally {
+        setLoading(false);
+      }
     }
-    setHasUser(true);
-    setQuestions(getAnonymousQuestionsFor(user.id).reverse());
-  }, []);
 
-  if (hasUser === null) return null;
+    fetchQuestions();
+  }, [isClient]);
 
-  if (!hasUser) {
+  if (!isClient) return null;
+
+  if (loading) {
+    return (
+      <div className="page-container flex justify-center py-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  if (!profileId) {
     return (
       <div className="page-container flex flex-col items-center text-center py-16 gap-4">
         <p className="text-gray-500">받은 질문을 보려면 프로필을 먼저 만들어주세요.</p>
-        <Link href="/onboarding" className="btn-primary max-w-xs">
+        <Link href={onboardingHref} className="btn-primary max-w-xs">
           프로필 만들기
         </Link>
       </div>
@@ -47,11 +78,22 @@ export default function InboxPage() {
           {questions.map((q) => (
             <Link
               key={q.id}
-              href={`/inbox/${q.id}`}
-              className="rounded-xl border border-gray-200 bg-white p-4 hover:border-indigo-300 hover:shadow-sm transition-all"
+              href={classCode ? withClassCode(`/inbox/${q.id}`, classCode) : `/inbox/${q.id}`}
+              className={`rounded-xl border p-4 transition-all ${
+                q.isAnswered
+                  ? "bg-gray-50 border-gray-100 opacity-60"
+                  : "bg-white border-gray-200 hover:border-indigo-300 hover:shadow-sm"
+              }`}
             >
-              <p className="text-sm font-medium text-gray-800">{q.questionText}</p>
-              <p className="mt-1 text-xs text-gray-400">
+              <div className="flex items-center justify-between mb-1">
+                <p className={`text-sm font-medium ${q.isAnswered ? "text-gray-500" : "text-gray-800"}`}>
+                  {q.questionText}
+                </p>
+                {q.isAnswered && (
+                  <span className="text-[10px] bg-gray-200 text-gray-500 px-1.5 py-0.5 rounded">답변완료</span>
+                )}
+              </div>
+              <p className="text-xs text-gray-400">
                 {new Date(q.createdAt).toLocaleDateString("ko-KR")}
               </p>
             </Link>

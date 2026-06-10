@@ -8,6 +8,8 @@ interface RecommendedQuestionListProps {
   questions: RecommendedQuestion[];
   selectedQuestionId: string | null;
   onSelect: (question: RecommendedQuestion) => void;
+  showCategories?: boolean;
+  showBadge?: boolean;
 }
 
 const CATEGORY_LABELS: Record<QuestionCategory, string> = {
@@ -25,15 +27,17 @@ export default function RecommendedQuestionList({
   questions,
   selectedQuestionId,
   onSelect,
+  showCategories = true,
+  showBadge = true,
 }: RecommendedQuestionListProps) {
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>("all");
 
   const filteredQuestions =
-    activeCategory === "all"
+    !showCategories || activeCategory === "all"
       ? questions
       : questions.filter((q) => q.category === activeCategory);
 
-  const visible = filteredQuestions.slice(0, 3);
+  const visible = showCategories ? filteredQuestions.slice(0, 3) : filteredQuestions;
 
   const tabClass = (active: boolean) =>
     `rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
@@ -44,26 +48,27 @@ export default function RecommendedQuestionList({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap gap-2">
-        {/* TODO: 카테고리 변경 시 이미 선택된 질문을 해제할지 UX 정책 결정 필요 */}
-        <button
-          type="button"
-          onClick={() => setActiveCategory("all")}
-          className={tabClass(activeCategory === "all")}
-        >
-          전체
-        </button>
-        {(Object.keys(CATEGORY_LABELS) as QuestionCategory[]).map((category) => (
+      {showCategories && (
+        <div className="flex flex-wrap gap-2">
           <button
-            key={category}
             type="button"
-            onClick={() => setActiveCategory(category)}
-            className={tabClass(activeCategory === category)}
+            onClick={() => setActiveCategory("all")}
+            className={tabClass(activeCategory === "all")}
           >
-            {CATEGORY_LABELS[category]}
+            전체
           </button>
-        ))}
-      </div>
+          {(Object.keys(CATEGORY_LABELS) as QuestionCategory[]).map((category) => (
+            <button
+              key={category}
+              type="button"
+              onClick={() => setActiveCategory(category)}
+              className={tabClass(activeCategory === category)}
+            >
+              {CATEGORY_LABELS[category]}
+            </button>
+          ))}
+        </div>
+      )}
       <div className="flex flex-col gap-2">
         {visible.length === 0 ? (
           <p className="py-4 text-center text-sm text-gray-400">
@@ -81,9 +86,11 @@ export default function RecommendedQuestionList({
                   : "border-gray-200 bg-white text-gray-700 hover:border-indigo-200"
               }`}
             >
-              <Badge variant="category" className="mr-2">
-                {CATEGORY_LABELS[q.category]}
-              </Badge>
+              {showBadge && (
+                <Badge variant="category" className="mr-2">
+                  {CATEGORY_LABELS[q.category]}
+                </Badge>
+              )}
               {q.text}
             </button>
           ))

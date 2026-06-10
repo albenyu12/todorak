@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Answer } from "@/lib/types";
 import { QUESTIONS } from "@/lib/questions";
+import { withClassCode } from "@/lib/client-session";
 import Card from "@/components/ui/card";
 import Badge from "@/components/ui/badge";
 import { QuestionCategory } from "@/lib/types";
@@ -8,6 +10,7 @@ import { formatDate } from "@/lib/utils";
 
 interface AnswerCardProps {
   answer: Answer;
+  isHighlighted?: boolean;
 }
 
 // ⚠️ 중요: 이 컴포넌트는 전체 Q&A 리스트에서 사용됩니다.
@@ -24,17 +27,35 @@ const CATEGORY_LABELS: Record<QuestionCategory, string> = {
   goal: "목표",
 };
 
-const ANSWER_TYPE_LABELS: Record<"inperson" | "online", string> = {
+const ANSWER_TYPE_LABELS: Record<Answer["answerType"], string> = {
+  first: "첫 답변",
   inperson: "대면",
   online: "온라인",
 };
 
-export default function AnswerCard({ answer }: AnswerCardProps) {
-  const question = QUESTIONS.find((q) => q.id === answer.questionId);
+function buildAnswerContextHref(answer: Answer, classCode: string | null): string {
+  const targetProfileId = answer.targetProfileId || answer.targetStudentId;
+  if (!targetProfileId) return `/answers/${answer.id}`;
+
+  const href = `/students/${targetProfileId}?contextAnswerId=${answer.id}`;
+  return classCode ? withClassCode(href, classCode) : href;
+}
+
+export default function AnswerCard({ answer, isHighlighted }: AnswerCardProps) {
+  const searchParams = useSearchParams();
+  const classCode = searchParams.get("class");
+  const question = QUESTIONS.find((q) => q.id === (answer.questionTemplateId || answer.questionId));
+  const profileHref = buildAnswerContextHref(answer, classCode);
 
   return (
-    <Link href={`/students/${answer.targetStudentId}`}>
-      <Card className="hover:border-indigo-300 hover:shadow-sm transition-all">
+    <Link href={profileHref}>
+      <Card
+        className={`transition-all ${
+          isHighlighted
+            ? "border-indigo-500 bg-indigo-50/30 ring-1 ring-indigo-500"
+            : "hover:border-indigo-300 hover:shadow-sm"
+        }`}
+      >
         <div className="flex items-center gap-1.5 mb-2">
           {question && (
             <Badge variant="category">
@@ -55,7 +76,7 @@ export default function AnswerCard({ answer }: AnswerCardProps) {
           {/* ⚠️ 이름 노출 금지: 반드시 "익명의 학생"으로만 표시 */}
           <span className="text-xs text-gray-400">익명의 학생</span>
           <span className="text-xs text-gray-400">
-            {formatDate(answer.recordedAt)}
+            {formatDate(answer.createdAt || answer.recordedAt)}
           </span>
         </div>
       </Card>
