@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { getStoredProfileId, getStoredClassId } from "@/lib/client-session";
+import { getStoredClassCode, getStoredProfileId, getStoredClassId, withClassCode } from "@/lib/client-session";
 import { getProfileById } from "@/lib/api/profiles";
 import { getAnswersForProfile } from "@/lib/api/answers";
 import { getInboxQuestions } from "@/lib/api/inbox-questions";
@@ -18,6 +18,10 @@ function ProfileContent() {
   const [myAnswers, setMyAnswers] = useState<Answer[]>([]);
   const [pendingQuestions, setPendingQuestions] = useState<InboxQuestion[]>([]);
   const [loading, setLoading] = useState(true);
+  const classCode = isClient ? getStoredClassCode() : null;
+  const onboardingHref = classCode ? withClassCode("/onboarding", classCode) : "/onboarding";
+  const editHref = classCode ? withClassCode("/onboarding?edit=true", classCode) : "/onboarding?edit=true";
+  const inboxHref = classCode ? withClassCode("/inbox", classCode) : "/inbox";
 
   useEffect(() => {
     if (!isClient) return;
@@ -26,7 +30,7 @@ function ProfileContent() {
     const classId = getStoredClassId();
 
     if (!profileId || !classId) {
-      router.replace("/onboarding");
+      router.replace(onboardingHref);
       return;
     }
 
@@ -51,7 +55,7 @@ function ProfileContent() {
     }
 
     fetchData();
-  }, [isClient, router]);
+  }, [isClient, onboardingHref, router]);
 
   if (!isClient || (loading && !user)) {
     return (
@@ -67,7 +71,7 @@ function ProfileContent() {
     <div className="page-container">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">내 프로필</h1>
-        <Link href="/onboarding?edit=true" className="text-sm text-indigo-600 hover:underline">
+        <Link href={editHref} className="text-sm text-indigo-600 hover:underline">
           수정
         </Link>
       </div>
@@ -94,7 +98,7 @@ function ProfileContent() {
       </div>
 
       {/* 받은 질문 요약 */}
-      <Link href="/inbox">
+      <Link href={inboxHref}>
         <div className="rounded-xl border border-indigo-100 bg-indigo-50 p-4 mb-6 flex items-center justify-between hover:bg-indigo-100 transition-colors">
           <div>
             <p className="text-sm font-semibold text-indigo-800">받은 질문</p>

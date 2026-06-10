@@ -26,6 +26,16 @@ export async function createInboxQuestion(
 ): Promise<ApiResponse<InboxQuestion>> {
   if (!supabase) return { data: null, error: { message: "Supabase client not initialized" } };
 
+  const currentProfileId = getStoredProfileId();
+  if (!currentProfileId) {
+    return { data: null, error: { message: "Profile is required to create an inbox question" } };
+  }
+
+  const currentProfileRes = await getProfileById(currentProfileId, classId);
+  if (currentProfileRes.error || !currentProfileRes.data) {
+    return { data: null, error: { message: "Current profile does not belong to the specified class or not found" } };
+  }
+
   // Verify targetProfileId belongs to classId
   const profileRes = await getProfileById(data.targetProfileId, classId);
   if (profileRes.error || !profileRes.data) {

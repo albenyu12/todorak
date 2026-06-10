@@ -1,14 +1,20 @@
 import Link from "next/link";
 import { StudentProfile } from "@/lib/types";
+import { withClassCode } from "@/lib/client-session";
 
 interface StudentCardProps {
   student: StudentProfile;
   matchReasons?: string[];
+  classCode?: string;
 }
 
-export default function StudentCard({ student, matchReasons }: StudentCardProps) {
+export default function StudentCard({ student, matchReasons, classCode }: StudentCardProps) {
+  const profileHref = classCode
+    ? withClassCode(`/students/${student.id}`, classCode)
+    : `/students/${student.id}`;
+
   return (
-    <Link href={`/students/${student.id}`}>
+    <Link href={profileHref}>
       <div className="rounded-xl border border-gray-200 bg-white p-4 hover:border-indigo-300 hover:shadow-sm transition-all">
         <div className="flex items-start gap-3">
           <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-semibold">

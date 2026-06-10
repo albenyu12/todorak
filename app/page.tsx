@@ -76,7 +76,6 @@ function HomeContent() {
   }
 
   const onboardingHref = withClassCode("/onboarding", state.session.classCode);
-  const recommendationsHref = withClassCode("/recommendations", state.session.classCode);
 
   return (
     <div className="page-container flex flex-col items-center justify-center min-h-[70vh] text-center">
@@ -87,12 +86,6 @@ function HomeContent() {
       </p>
       <Link href={onboardingHref} className="btn-primary max-w-xs">
         프로필 만들고 시작하기
-      </Link>
-      <Link
-        href={recommendationsHref}
-        className="mt-3 text-sm text-gray-400 hover:text-gray-600 underline"
-      >
-        프로필 없이 둘러보기
       </Link>
     </div>
   );

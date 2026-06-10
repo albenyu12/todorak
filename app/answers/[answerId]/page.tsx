@@ -5,48 +5,96 @@ import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getAnswerById } from "@/lib/api/answers";
 import { Answer } from "@/lib/api/types";
-import { getStoredClassId, withClassCode } from "@/lib/client-session";
+import { withClassCode } from "@/lib/client-session";
+import {
+  resolveProtectedProfileSession,
+  type ProtectedProfileSessionState,
+} from "@/lib/protected-session";
 import { useIsClient } from "@/lib/use-is-client";
 
 function AnswerDetailContent() {
   const { answerId } = useParams<{ answerId: string }>();
   const searchParams = useSearchParams();
-  const classCode = searchParams.get("class");
   const isClient = useIsClient();
+  const [sessionState, setSessionState] = useState<
+    ProtectedProfileSessionState | { status: "loading" }
+  >({ status: "loading" });
+  const classCode = sessionState.status === "ready" || sessionState.status === "missingProfile"
+    ? sessionState.session.classCode
+    : searchParams.get("class");
+  const answersHref = classCode ? withClassCode("/answers", classCode) : "/answers";
+  const onboardingHref = classCode ? withClassCode("/onboarding", classCode) : "/onboarding";
   const [answer, setAnswer] = useState<Answer | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!isClient) return;
+    let isActive = true;
 
     async function fetchAnswer() {
-      const classId = getStoredClassId();
-      if (!classId) {
+      setLoading(true);
+      setAnswer(null);
+
+      const nextSessionState = await resolveProtectedProfileSession(searchParams);
+      if (!isActive) return;
+
+      setSessionState(nextSessionState);
+
+      if (nextSessionState.status !== "ready") {
         setLoading(false);
         return;
       }
 
       try {
-        const res = await getAnswerById(answerId, classId!);
-        if (res.data) {
+        const res = await getAnswerById(answerId, nextSessionState.session.classId);
+        if (isActive && res.data) {
           setAnswer(res.data);
         }
       } catch (err) {
         console.error("Failed to fetch answer:", err);
       } finally {
-        setLoading(false);
+        if (isActive) {
+          setLoading(false);
+        }
       }
     }
 
     fetchAnswer();
-  }, [isClient, answerId]);
+
+    return () => {
+      isActive = false;
+    };
+  }, [isClient, searchParams, answerId]);
 
   if (!isClient) return null;
 
-  if (loading) {
+  if (sessionState.status === "invalid") {
+    return (
+      <div className="page-container text-center py-16">
+        <p className="text-gray-400">
+          {sessionState.classCode} 수업을 찾을 수 없습니다.
+        </p>
+      </div>
+    );
+  }
+
+  if (loading || sessionState.status === "loading") {
     return (
       <div className="page-container flex justify-center py-12">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  if (sessionState.status === "missingProfile") {
+    return (
+      <div className="page-container flex flex-col items-center gap-4 py-16 text-center">
+        <p className="text-gray-500">
+          Q&amp;A를 보려면 프로필을 먼저 만들어주세요.
+        </p>
+        <Link href={onboardingHref} className="btn-primary max-w-xs">
+          프로필 만들기
+        </Link>
       </div>
     );
   }
@@ -55,7 +103,7 @@ function AnswerDetailContent() {
     return (
       <div className="page-container text-center py-16">
         <p className="text-gray-400">답변을 찾을 수 없습니다.</p>
-        <Link href="/answers" className="btn-primary mt-4 max-w-xs mx-auto">
+        <Link href={answersHref} className="btn-primary mt-4 max-w-xs mx-auto">
           Q&A 목록으로
         </Link>
       </div>
@@ -69,7 +117,7 @@ function AnswerDetailContent() {
   return (
     <div className="page-container">
       <Link
-        href="/answers"
+        href={answersHref}
         className="mb-4 inline-block text-sm text-gray-400 hover:text-gray-600"
       >
         ← Q&A 목록
