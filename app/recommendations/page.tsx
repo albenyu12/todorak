@@ -168,7 +168,10 @@ function RecommendationsContent() {
           </Link>
         </div>
       ) : (
-        <StudentList recommendations={recommendations} />
+        <StudentList
+          recommendations={recommendations}
+          classCode={session?.classCode ?? classState.session.classCode}
+        />
       )}
     </div>
   );

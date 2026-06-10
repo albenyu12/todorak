@@ -5,23 +5,26 @@ import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getAnswerById } from "@/lib/api/answers";
 import { Answer } from "@/lib/api/types";
+import { withClassCode } from "@/lib/client-session";
 import {
-  getStoredClassCode,
-  getStoredClassId,
-  getStoredProfileId,
-  withClassCode,
-} from "@/lib/client-session";
+  resolveProtectedProfileSession,
+  type ProtectedProfileSessionState,
+} from "@/lib/protected-session";
 import { useIsClient } from "@/lib/use-is-client";
 
 function AnswerDetailContent() {
   const { answerId } = useParams<{ answerId: string }>();
   const searchParams = useSearchParams();
   const isClient = useIsClient();
-  const classCode = searchParams.get("class") ?? (isClient ? getStoredClassCode() : null);
+  const [sessionState, setSessionState] = useState<
+    ProtectedProfileSessionState | { status: "loading" }
+  >({ status: "loading" });
+  const classCode = sessionState.status === "ready" || sessionState.status === "missingProfile"
+    ? sessionState.session.classCode
+    : searchParams.get("class");
   const answersHref = classCode ? withClassCode("/answers", classCode) : "/answers";
   const onboardingHref = classCode ? withClassCode("/onboarding", classCode) : "/onboarding";
   const [answer, setAnswer] = useState<Answer | null>(null);
-  const [hasProfile, setHasProfile] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -29,25 +32,21 @@ function AnswerDetailContent() {
     let isActive = true;
 
     async function fetchAnswer() {
-      const classId = getStoredClassId();
-      const profileId = getStoredProfileId();
-
       setLoading(true);
       setAnswer(null);
-      setHasProfile(null);
 
-      if (!classId || !profileId) {
-        if (isActive) {
-          setHasProfile(false);
-          setLoading(false);
-        }
+      const nextSessionState = await resolveProtectedProfileSession(searchParams);
+      if (!isActive) return;
+
+      setSessionState(nextSessionState);
+
+      if (nextSessionState.status !== "ready") {
+        setLoading(false);
         return;
       }
 
-      setHasProfile(true);
-
       try {
-        const res = await getAnswerById(answerId, classId!);
+        const res = await getAnswerById(answerId, nextSessionState.session.classId);
         if (isActive && res.data) {
           setAnswer(res.data);
         }
@@ -65,11 +64,21 @@ function AnswerDetailContent() {
     return () => {
       isActive = false;
     };
-  }, [isClient, answerId]);
+  }, [isClient, searchParams, answerId]);
 
   if (!isClient) return null;
 
-  if (loading) {
+  if (sessionState.status === "invalid") {
+    return (
+      <div className="page-container text-center py-16">
+        <p className="text-gray-400">
+          {sessionState.classCode} 수업을 찾을 수 없습니다.
+        </p>
+      </div>
+    );
+  }
+
+  if (loading || sessionState.status === "loading") {
     return (
       <div className="page-container flex justify-center py-12">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
@@ -77,7 +86,7 @@ function AnswerDetailContent() {
     );
   }
 
-  if (hasProfile === false) {
+  if (sessionState.status === "missingProfile") {
     return (
       <div className="page-container flex flex-col items-center gap-4 py-16 text-center">
         <p className="text-gray-500">
